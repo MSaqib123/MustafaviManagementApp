@@ -1,0 +1,42 @@
+@model IEnumerable<MedicineStore.Models.Customer>
+@{
+    ViewData["Title"] = "Customers";
+}
+
+<h2>Customers</h2>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Create New Customer</a>
+</p>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>@Html.DisplayNameFor(m => m.First().CustomerName)</th>
+            <th>@Html.DisplayNameFor(m => m.First().PhoneNumber)</th>
+            <th>@Html.DisplayNameFor(m => m.First().Email)</th>
+            <th>@Html.DisplayNameFor(m => m.First().MembershipId)</th>
+            <th>@Html.DisplayNameFor(m => m.First().LoyaltyPoints)</th>
+            <th>@Html.DisplayNameFor(m => m.First().Store.StoreName)</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var cust in Model)
+        {
+            <tr>
+                <td>@cust.CustomerName</td>
+                <td>@cust.PhoneNumber</td>
+                <td>@cust.Email</td>
+                <td>@cust.MembershipId</td>
+                <td>@cust.LoyaltyPoints</td>
+                <td>@cust.Store?.StoreName</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@cust.CustomerId">Edit</a> |
+                    <a asp-action="Details" asp-route-id="@cust.CustomerId">Details</a> |
+                    <a asp-action="Delete" asp-route-id="@cust.CustomerId">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

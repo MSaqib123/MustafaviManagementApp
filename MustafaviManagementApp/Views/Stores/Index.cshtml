@@ -1,0 +1,28 @@
+@model IEnumerable<MedicineStore.Models.Store>
+@{
+    ViewData["Title"] = "Store List";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<h2>Store List</h2>
+<p><a asp-action="Create" class="btn btn-primary">Create New</a></p>
+<table class="table table-striped" data-search>
+    <thead>
+        <tr>
+            <th>StoreName</th><th>Location</th><th>ContactInfo</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>@item.StoreName</td><td>@item.Location</td><td>@item.ContactInfo</td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@item.StoreId">Edit</a> |
+                <a asp-action="Details" asp-route-id="@item.StoreId">Details</a> |
+                <a asp-action="Delete" asp-route-id="@item.StoreId">Delete</a>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>

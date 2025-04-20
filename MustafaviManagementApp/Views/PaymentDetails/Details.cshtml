@@ -1,0 +1,42 @@
+@model IEnumerable<MedicineStore.Models.PaymentDetail>
+@{
+    ViewData["Title"] = "Payment Details";
+}
+
+<h2>Payment Details</h2>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Create New Payment Detail</a>
+</p>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>@Html.DisplayNameFor(m => m.First().PaymentDetailId)</th>
+            <th>Payment Id</th>
+            <th>@Html.DisplayNameFor(m => m.First().PaymentMethod)</th>
+            <th>@Html.DisplayNameFor(m => m.First().AmountPaid)</th>
+            <th>@Html.DisplayNameFor(m => m.First().PaidAt)</th>
+            <th>@Html.DisplayNameFor(m => m.First().Note)</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var pd in Model)
+        {
+            <tr>
+                <td>@pd.PaymentDetailId</td>
+                <td>@pd.PaymentId</td>
+                <td>@pd.PaymentMethod</td>
+                <td>@pd.AmountPaid.ToString("F2")</td>
+                <td>@pd.PaidAt.ToString("g")</td>
+                <td>@pd.Note</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@pd.PaymentDetailId">Edit</a> |
+                    <a asp-action="Details" asp-route-id="@pd.PaymentDetailId">Details</a> |
+                    <a asp-action="Delete" asp-route-id="@pd.PaymentDetailId">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

@@ -1,0 +1,42 @@
+@model IEnumerable<MedicineStore.Models.Purchase>
+@{
+    ViewData["Title"] = "Purchases";
+}
+
+<h2>Purchases</h2>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Create New Purchase</a>
+</p>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>@Html.DisplayNameFor(m => m.First().PurchaseId)</th>
+            <th>@Html.DisplayNameFor(m => m.First().Supplier.SupplierName)</th>
+            <th>@Html.DisplayNameFor(m => m.First().Staff.StaffName)</th>
+            <th>@Html.DisplayNameFor(m => m.First().PurchaseDate)</th>
+            <th>@Html.DisplayNameFor(m => m.First().TotalCost)</th>
+            <th>@Html.DisplayNameFor(m => m.First().PaymentStatus)</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var pur in Model)
+        {
+            <tr>
+                <td>@pur.PurchaseId</td>
+                <td>@pur.Supplier?.SupplierName</td>
+                <td>@pur.Staff.StaffName</td>
+                <td>@pur.PurchaseDate.ToString("g")</td>
+                <td>@pur.TotalCost.ToString("F2")</td>
+                <td>@pur.PaymentStatus</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@pur.PurchaseId">Edit</a> |
+                    <a asp-action="Details" asp-route-id="@pur.PurchaseId">Details</a> |
+                    <a asp-action="Delete" asp-route-id="@pur.PurchaseId">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

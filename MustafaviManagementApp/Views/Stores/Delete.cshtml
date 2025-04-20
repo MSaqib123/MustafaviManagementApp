@@ -1,0 +1,17 @@
+    @model MedicineStore.Models.Store
+    @{
+        ViewData["Title"] = "Delete Store";
+        Layout = "~/Views/Shared/_Layout.cshtml";
+    }
+    <h2>Delete Store</h2>
+    <h4>Are you sure you want to delete this?</h4>
+    <dl class="row">
+    <dt class='col-sm-3'>StoreName</dt><dd class='col-sm-9'>@Model.StoreName</dd>
+<dt class='col-sm-3'>Location</dt><dd class='col-sm-9'>@Model.Location</dd>
+<dt class='col-sm-3'>ContactInfo</dt><dd class='col-sm-9'>@Model.ContactInfo</dd>
+    </dl>
+    <form asp-action="Delete" method="post">
+        <input type="hidden" asp-for="StoreId" />
+        <button type="submit" class="btn btn-danger">Delete</button>
+        <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+    </form>

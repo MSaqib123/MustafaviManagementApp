@@ -1,0 +1,13 @@
+    @model MedicineStore.Models.DailySummary
+    @{
+        ViewData["Title"] = "DailySummary Details";
+        Layout = "~/Views/Shared/_Layout.cshtml";
+    }
+    <h2>DailySummary Details</h2>
+    <dl class="row">
+    <dt class='col-sm-3'>SummaryDate</dt><dd class='col-sm-9'>@Model.SummaryDate</dd>
+<dt class='col-sm-3'>TotalSales</dt><dd class='col-sm-9'>@Model.TotalSales</dd>
+<dt class='col-sm-3'>TotalPurchases</dt><dd class='col-sm-9'>@Model.TotalPurchases</dd>
+    </dl>
+    <a asp-action="Edit" asp-route-id="@Model.DailySummaryId" class="btn btn-warning">Edit</a>
+    <a asp-action="Index" class="btn btn-secondary">Back</a>

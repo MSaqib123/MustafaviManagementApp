@@ -1,0 +1,44 @@
+@model IEnumerable<MedicineStore.Models.SaleDetail>
+@{
+    ViewData["Title"] = "Sale Details";
+}
+
+<h2>Sale Details</h2>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Create New Sale Detail</a>
+</p>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>@Html.DisplayNameFor(m => m.First().SaleDetailId)</th>
+            <th>Sale</th>
+            <th>Medicine</th>
+            <th>@Html.DisplayNameFor(m => m.First().Quantity)</th>
+            <th>@Html.DisplayNameFor(m => m.First().UnitPrice)</th>
+            <th>@Html.DisplayNameFor(m => m.First().Discount)</th>
+            <th>SubTotal</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var d in Model)
+        {
+            <tr>
+                <td>@d.SaleDetailId</td>
+                <td>@d.Sale?.SaleId</td>
+                <td>@d.Medicine?.MedicineName</td>
+                <td>@d.Quantity</td>
+                <td>@d.UnitPrice.ToString("F2")</td>
+                <td>@d.Discount.ToString("F2")</td>
+                <td>@((d.Quantity * d.UnitPrice - d.Discount).ToString("F2"))</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@d.SaleDetailId">Edit</a> |
+                    <a asp-action="Details" asp-route-id="@d.SaleDetailId">Details</a> |
+                    <a asp-action="Delete" asp-route-id="@d.SaleDetailId">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

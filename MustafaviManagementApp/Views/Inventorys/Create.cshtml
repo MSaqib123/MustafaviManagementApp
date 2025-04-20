@@ -1,0 +1,43 @@
+@model MedicineStore.Models.Inventory
+@{
+    ViewData["Title"] = "Create Inventory";
+}
+
+<h2>Create Inventory Record</h2>
+
+<form asp-action="Create" method="post">
+    <div class="form-group">
+        <label asp-for="MedicineId">Medicine</label>
+        <select asp-for="MedicineId" class="form-control"
+                asp-items="@(ViewBag.Medicines as SelectList)">
+            <option value="">-- Select Medicine --</option>
+        </select>
+        <span asp-validation-for="MedicineId" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="BatchNumber"></label>
+        <input asp-for="BatchNumber" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label asp-for="ExpiryDate"></label>
+        <input asp-for="ExpiryDate" class="form-control" type="date" />
+    </div>
+    <div class="form-group">
+        <label asp-for="QuantityOnHand"></label>
+        <input asp-for="QuantityOnHand" class="form-control" />
+        <span asp-validation-for="QuantityOnHand" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="LocationInStore"></label>
+        <input asp-for="LocationInStore" class="form-control" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Create</button>
+    <a asp-action="Index" class="btn btn-link">Cancel</a>
+</form>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

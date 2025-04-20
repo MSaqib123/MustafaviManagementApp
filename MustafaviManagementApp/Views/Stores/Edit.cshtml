@@ -1,0 +1,25 @@
+@model MedicineStore.Models.Store
+@{
+    ViewData["Title"] = "Edit Store";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<h2>Edit Store</h2>
+<form asp-action="Edit" method="post">
+    <div class="mb-3">
+        <label asp-for="StoreName" class="form-label"></label>
+        <input asp-for="StoreName" class="form-control" />
+        <span asp-validation-for="StoreName" class="text-danger"></span>
+    </div>
+<div class="mb-3">
+        <label asp-for="Location" class="form-label"></label>
+        <input asp-for="Location" class="form-control" />
+        <span asp-validation-for="Location" class="text-danger"></span>
+    </div>
+<div class="mb-3">
+        <label asp-for="ContactInfo" class="form-label"></label>
+        <input asp-for="ContactInfo" class="form-control" />
+        <span asp-validation-for="ContactInfo" class="text-danger"></span>
+    </div>
+    <button type="submit" class="btn btn-success">Save</button>
+    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+</form>

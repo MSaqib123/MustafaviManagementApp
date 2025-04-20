@@ -1,0 +1,25 @@
+@model MedicineStore.Models.DailySummary
+@{
+    ViewData["Title"] = "Edit DailySummary";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<h2>Edit DailySummary</h2>
+<form asp-action="Edit" method="post">
+    <div class="mb-3">
+        <label asp-for="SummaryDate" class="form-label"></label>
+        <input asp-for="SummaryDate" class="form-control" />
+        <span asp-validation-for="SummaryDate" class="text-danger"></span>
+    </div>
+<div class="mb-3">
+        <label asp-for="TotalSales" class="form-label"></label>
+        <input asp-for="TotalSales" class="form-control" />
+        <span asp-validation-for="TotalSales" class="text-danger"></span>
+    </div>
+<div class="mb-3">
+        <label asp-for="TotalPurchases" class="form-label"></label>
+        <input asp-for="TotalPurchases" class="form-control" />
+        <span asp-validation-for="TotalPurchases" class="text-danger"></span>
+    </div>
+    <button type="submit" class="btn btn-success">Save</button>
+    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+</form>

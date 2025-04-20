@@ -1,0 +1,48 @@
+@model IEnumerable<MedicineStore.Models.PurchaseDetail>
+@{
+    ViewData["Title"] = "Purchase Details";
+}
+
+<h2>Purchase Details</h2>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Create New Purchase Detail</a>
+</p>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>@Html.DisplayNameFor(m => m.First().PurchaseDetailId)</th>
+            <th>Purchase</th>
+            <th>Medicine</th>
+            <th>@Html.DisplayNameFor(m => m.First().BatchNumber)</th>
+            <th>@Html.DisplayNameFor(m => m.First().ExpiryDate)</th>
+            <th>@Html.DisplayNameFor(m => m.First().Quantity)</th>
+            <th>@Html.DisplayNameFor(m => m.First().CostPrice)</th>
+            <th>@Html.DisplayNameFor(m => m.First().Discount)</th>
+            <th>SubTotal</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var d in Model)
+        {
+            <tr>
+                <td>@d.PurchaseDetailId</td>
+                <td>@d.Purchase?.PurchaseId</td>
+                <td>@d.Medicine?.MedicineName</td>
+                <td>@d.BatchNumber</td>
+                <td>@d.ExpiryDate?.ToShortDateString()</td>
+                <td>@d.Quantity</td>
+                <td>@d.CostPrice.ToString("F2")</td>
+                <td>@d.Discount.ToString("F2")</td>
+                <td>@((d.Quantity * d.CostPrice - d.Discount).ToString("F2"))</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@d.PurchaseDetailId">Edit</a> |
+                    <a asp-action="Details" asp-route-id="@d.PurchaseDetailId">Details</a> |
+                    <a asp-action="Delete" asp-route-id="@d.PurchaseDetailId">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

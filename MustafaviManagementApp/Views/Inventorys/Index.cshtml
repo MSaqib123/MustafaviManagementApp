@@ -1,0 +1,42 @@
+@model IEnumerable<MedicineStore.Models.Inventory>
+@{
+    ViewData["Title"] = "Inventories";
+}
+
+<h2>Inventories</h2>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Create New Inventory Record</a>
+</p>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>@Html.DisplayNameFor(m => m.First().InventoryId)</th>
+            <th>Medicine</th>
+            <th>@Html.DisplayNameFor(m => m.First().BatchNumber)</th>
+            <th>@Html.DisplayNameFor(m => m.First().ExpiryDate)</th>
+            <th>@Html.DisplayNameFor(m => m.First().QuantityOnHand)</th>
+            <th>@Html.DisplayNameFor(m => m.First().LocationInStore)</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var inv in Model)
+        {
+            <tr>
+                <td>@inv.InventoryId</td>
+                <td>@inv.Medicine?.MedicineName</td>
+                <td>@inv.BatchNumber</td>
+                <td>@inv.ExpiryDate?.ToShortDateString()</td>
+                <td>@inv.QuantityOnHand</td>
+                <td>@inv.LocationInStore</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@inv.InventoryId">Edit</a> |
+                    <a asp-action="Details" asp-route-id="@inv.InventoryId">Details</a> |
+                    <a asp-action="Delete" asp-route-id="@inv.InventoryId">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

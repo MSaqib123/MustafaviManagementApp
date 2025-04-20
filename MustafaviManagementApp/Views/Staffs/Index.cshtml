@@ -1,0 +1,42 @@
+@model IEnumerable<MedicineStore.Models.Staff>
+@{
+    ViewData["Title"] = "Staff";
+}
+
+<h2>Staff</h2>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Create New Staff</a>
+</p>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>@Html.DisplayNameFor(m => m.First().StaffName)</th>
+            <th>@Html.DisplayNameFor(m => m.First().Role)</th>
+            <th>@Html.DisplayNameFor(m => m.First().PhoneNumber)</th>
+            <th>@Html.DisplayNameFor(m => m.First().Email)</th>
+            <th>@Html.DisplayNameFor(m => m.First().Salary)</th>
+            <th>@Html.DisplayNameFor(m => m.First().Store.StoreName)</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var s in Model)
+        {
+            <tr>
+                <td>@s.StaffName</td>
+                <td>@s.Role</td>
+                <td>@s.PhoneNumber</td>
+                <td>@s.Email</td>
+                <td>@s.Salary?.ToString("F2")</td>
+                <td>@s.Store?.StoreName</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@s.StaffId">Edit</a> |
+                    <a asp-action="Details" asp-route-id="@s.StaffId">Details</a> |
+                    <a asp-action="Delete" asp-route-id="@s.StaffId">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

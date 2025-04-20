@@ -1,0 +1,28 @@
+@model IEnumerable<MedicineStore.Models.DailySummary>
+@{
+    ViewData["Title"] = "DailySummary List";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<h2>DailySummary List</h2>
+<p><a asp-action="Create" class="btn btn-primary">Create New</a></p>
+<table class="table table-striped" data-search>
+    <thead>
+        <tr>
+            <th>SummaryDate</th><th>TotalSales</th><th>TotalPurchases</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>@item.SummaryDate</td><td>@item.TotalSales</td><td>@item.TotalPurchases</td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@item.DailySummaryId">Edit</a> |
+                <a asp-action="Details" asp-route-id="@item.DailySummaryId">Details</a> |
+                <a asp-action="Delete" asp-route-id="@item.DailySummaryId">Delete</a>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>

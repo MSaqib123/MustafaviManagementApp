@@ -1,0 +1,61 @@
+@model MedicineStore.Models.Payment
+@{
+    ViewData["Title"] = "Payment Details";
+}
+
+<h2>Payment Details</h2>
+
+<div class="card p-3 mb-3">
+    <dl class="row">
+        <dt class="col-sm-2">Payment Id</dt>
+        <dd class="col-sm-10">@Model.PaymentId</dd>
+
+        <dt class="col-sm-2">Reference Type</dt>
+        <dd class="col-sm-10">@Model.ReferenceType</dd>
+
+        <dt class="col-sm-2">Reference Id</dt>
+        <dd class="col-sm-10">@Model.ReferenceId</dd>
+
+        <dt class="col-sm-2">Total Amount</dt>
+        <dd class="col-sm-10">@Model.TotalAmount.ToString("F2")</dd>
+
+        <dt class="col-sm-2">Status</dt>
+        <dd class="col-sm-10">@Model.Status</dd>
+
+        <dt class="col-sm-2">Payment Date</dt>
+        <dd class="col-sm-10">@Model.PaymentDate.ToString("g")</dd>
+    </dl>
+</div>
+
+@if (Model.PaymentDetails?.Any() == true)
+{
+    <h4>Payment Transactions</h4>
+    <table class="table table-bordered mb-3">
+        <thead>
+            <tr>
+                <th>Detail Id</th>
+                <th>Method</th>
+                <th>Amount Paid</th>
+                <th>Paid At</th>
+                <th>Note</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var d in Model.PaymentDetails)
+            {
+                <tr>
+                    <td>@d.PaymentDetailId</td>
+                    <td>@d.PaymentMethod</td>
+                    <td>@d.AmountPaid.ToString("F2")</td>
+                    <td>@d.PaidAt.ToString("g")</td>
+                    <td>@d.Note</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<p>
+    <a asp-action="Edit" asp-route-id="@Model.PaymentId" class="btn btn-secondary">Edit</a>
+    <a asp-action="Index" class="btn btn-link">Back to List</a>
+</p>

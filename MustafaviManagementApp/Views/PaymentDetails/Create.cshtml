@@ -1,0 +1,45 @@
+@model MedicineStore.Models.PaymentDetail
+@{
+    ViewData["Title"] = "Create Payment Detail";
+}
+
+<h2>Create Payment Detail</h2>
+
+<form asp-action="Create" method="post">
+    <div class="form-group">
+        <label asp-for="PaymentId">Payment</label>
+        <select asp-for="PaymentId" class="form-control"
+                asp-items="@(ViewBag.Payments as SelectList)">
+            <option value="">-- Select Payment --</option>
+        </select>
+        <span asp-validation-for="PaymentId" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="PaymentMethod"></label>
+        <input asp-for="PaymentMethod" class="form-control" />
+        <span asp-validation-for="PaymentMethod" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="AmountPaid"></label>
+        <input asp-for="AmountPaid" class="form-control" />
+        <span asp-validation-for="AmountPaid" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="PaidAt"></label>
+        <input asp-for="PaidAt" class="form-control" type="datetime-local" />
+        <span asp-validation-for="PaidAt" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="Note"></label>
+        <input asp-for="Note" class="form-control" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Create</button>
+    <a asp-action="Index" class="btn btn-link">Cancel</a>
+</form>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

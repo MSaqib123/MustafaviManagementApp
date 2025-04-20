@@ -1,0 +1,40 @@
+@model IEnumerable<MedicineStore.Models.Supplier>
+@{
+    ViewData["Title"] = "Suppliers";
+}
+
+<h2>Suppliers</h2>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Create New Supplier</a>
+</p>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>@Html.DisplayNameFor(m => m.First().SupplierName)</th>
+            <th>@Html.DisplayNameFor(m => m.First().ContactPerson)</th>
+            <th>@Html.DisplayNameFor(m => m.First().PhoneNumber)</th>
+            <th>@Html.DisplayNameFor(m => m.First().Email)</th>
+            <th>@Html.DisplayNameFor(m => m.First().Store.StoreName)</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var sup in Model)
+        {
+            <tr>
+                <td>@sup.SupplierName</td>
+                <td>@sup.ContactPerson</td>
+                <td>@sup.PhoneNumber</td>
+                <td>@sup.Email</td>
+                <td>@sup.Store?.StoreName</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@sup.SupplierId">Edit</a> |
+                    <a asp-action="Details" asp-route-id="@sup.SupplierId">Details</a> |
+                    <a asp-action="Delete" asp-route-id="@sup.SupplierId">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

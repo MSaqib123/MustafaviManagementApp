@@ -1,0 +1,36 @@
+@model MedicineStore.Models.Staff
+@{
+    ViewData["Title"] = "Staff Details";
+}
+
+<h2>Staff Details</h2>
+
+<div class="card p-3 mb-3">
+    <dl class="row">
+        <dt class="col-sm-2">Name</dt>
+        <dd class="col-sm-10">@Model.StaffName</dd>
+
+        <dt class="col-sm-2">Role</dt>
+        <dd class="col-sm-10">@Model.Role</dd>
+
+        <dt class="col-sm-2">Phone</dt>
+        <dd class="col-sm-10">@Model.PhoneNumber</dd>
+
+        <dt class="col-sm-2">Email</dt>
+        <dd class="col-sm-10">@Model.Email</dd>
+
+        <dt class="col-sm-2">Salary</dt>
+        <dd class="col-sm-10">@Model.Salary?.ToString("F2")</dd>
+
+        <dt class="col-sm-2">Address</dt>
+        <dd class="col-sm-10">@Model.Address</dd>
+
+        <dt class="col-sm-2">Store</dt>
+        <dd class="col-sm-10">@Model.Store?.StoreName</dd>
+    </dl>
+</div>
+
+<p>
+    <a asp-action="Edit" asp-route-id="@Model.StaffId" class="btn btn-secondary">Edit</a>
+    <a asp-action="Index" class="btn btn-link">Back to List</a>
+</p>

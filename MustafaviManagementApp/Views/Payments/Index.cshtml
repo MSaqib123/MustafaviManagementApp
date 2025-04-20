@@ -1,0 +1,42 @@
+@model IEnumerable<MedicineStore.Models.Payment>
+@{
+    ViewData["Title"] = "Payments";
+}
+
+<h2>Payments</h2>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Create New Payment</a>
+</p>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>@Html.DisplayNameFor(m => m.First().PaymentId)</th>
+            <th>@Html.DisplayNameFor(m => m.First().ReferenceType)</th>
+            <th>@Html.DisplayNameFor(m => m.First().ReferenceId)</th>
+            <th>@Html.DisplayNameFor(m => m.First().TotalAmount)</th>
+            <th>@Html.DisplayNameFor(m => m.First().Status)</th>
+            <th>@Html.DisplayNameFor(m => m.First().PaymentDate)</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var pay in Model)
+        {
+            <tr>
+                <td>@pay.PaymentId</td>
+                <td>@pay.ReferenceType</td>
+                <td>@pay.ReferenceId</td>
+                <td>@pay.TotalAmount.ToString("F2")</td>
+                <td>@pay.Status</td>
+                <td>@pay.PaymentDate.ToString("g")</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@pay.PaymentId">Edit</a> |
+                    <a asp-action="Details" asp-route-id="@pay.PaymentId">Details</a> |
+                    <a asp-action="Delete" asp-route-id="@pay.PaymentId">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

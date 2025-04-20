@@ -1,0 +1,43 @@
+@model IEnumerable<MedicineStore.Models.Medicine>
+@{
+    ViewData["Title"] = "Medicines";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Medicines</h2>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Create New Medicine</a>
+</p>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>@Html.DisplayNameFor(m => m.First().MedicineName)</th>
+            <th>@Html.DisplayNameFor(m => m.First().Category.CategoryName)</th>
+            <th>@Html.DisplayNameFor(m => m.First().Store.StoreName)</th>
+            <th>@Html.DisplayNameFor(m => m.First().PriceType)</th>
+            <th>@Html.DisplayNameFor(m => m.First().SingleUnitPrice)</th>
+            <th>@Html.DisplayNameFor(m => m.First().CotanUnitPrice)</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var med in Model)
+        {
+            <tr>
+                <td>@med.MedicineName</td>
+                <td>@med.Category?.CategoryName</td>
+                <td>@med.Store?.StoreName</td>
+                <td>@med.PriceType</td>
+                <td>@med.SingleUnitPrice?.ToString("F2")</td>
+                <td>@med.CotanUnitPrice?.ToString("F2")</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@med.MedicineId">Edit</a> |
+                    <a asp-action="Details" asp-route-id="@med.MedicineId">Details</a> |
+                    <a asp-action="Delete" asp-route-id="@med.MedicineId">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

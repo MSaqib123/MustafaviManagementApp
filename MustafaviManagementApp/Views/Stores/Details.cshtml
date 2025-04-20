@@ -1,0 +1,13 @@
+    @model MedicineStore.Models.Store
+    @{
+        ViewData["Title"] = "Store Details";
+        Layout = "~/Views/Shared/_Layout.cshtml";
+    }
+    <h2>Store Details</h2>
+    <dl class="row">
+    <dt class='col-sm-3'>StoreName</dt><dd class='col-sm-9'>@Model.StoreName</dd>
+<dt class='col-sm-3'>Location</dt><dd class='col-sm-9'>@Model.Location</dd>
+<dt class='col-sm-3'>ContactInfo</dt><dd class='col-sm-9'>@Model.ContactInfo</dd>
+    </dl>
+    <a asp-action="Edit" asp-route-id="@Model.StoreId" class="btn btn-warning">Edit</a>
+    <a asp-action="Index" class="btn btn-secondary">Back</a>

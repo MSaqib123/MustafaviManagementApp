@@ -1,0 +1,42 @@
+@model MedicineStore.Models.PurchaseDetail
+@{
+    ViewData["Title"] = "Purchase Detail";
+}
+
+<h2>Purchase Detail</h2>
+
+<div class="card p-3 mb-3">
+    <dl class="row">
+        <dt class="col-sm-2">ID</dt>
+        <dd class="col-sm-10">@Model.PurchaseDetailId</dd>
+
+        <dt class="col-sm-2">Purchase</dt>
+        <dd class="col-sm-10">@Model.Purchase?.PurchaseId</dd>
+
+        <dt class="col-sm-2">Medicine</dt>
+        <dd class="col-sm-10">@Model.Medicine?.MedicineName</dd>
+
+        <dt class="col-sm-2">Batch Number</dt>
+        <dd class="col-sm-10">@Model.BatchNumber</dd>
+
+        <dt class="col-sm-2">Expiry Date</dt>
+        <dd class="col-sm-10">@Model.ExpiryDate?.ToShortDateString()</dd>
+
+        <dt class="col-sm-2">Quantity</dt>
+        <dd class="col-sm-10">@Model.Quantity</dd>
+
+        <dt class="col-sm-2">Cost Price</dt>
+        <dd class="col-sm-10">@Model.CostPrice.ToString("F2")</dd>
+
+        <dt class="col-sm-2">Discount</dt>
+        <dd class="col-sm-10">@Model.Discount.ToString("F2")</dd>
+
+        <dt class="col-sm-2">SubTotal</dt>
+        <dd class="col-sm-10">@((Model.Quantity * Model.CostPrice - Model.Discount).ToString("F2"))</dd>
+    </dl>
+</div>
+
+<p>
+    <a asp-action="Edit" asp-route-id="@Model.PurchaseDetailId" class="btn btn-secondary">Edit</a>
+    <a asp-action="Index" class="btn btn-link">Back to List</a>
+</p>
