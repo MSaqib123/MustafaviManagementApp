@@ -9,10 +9,10 @@ using System.Threading.Tasks;
 
 namespace MedicineStore.Controllers
 {
-    public class InventoriesController : Controller
+    public class InventorysController : Controller
     {
         private readonly AppDbContext _context;
-        public InventoriesController(AppDbContext context) => _context = context;
+        public InventorysController(AppDbContext context) => _context = context;
 
         // Populate medicine dropdown
         private void PopulateMedicines()

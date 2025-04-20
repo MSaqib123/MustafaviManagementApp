@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using System;
 using System.Collections.Generic;
 
@@ -14,8 +15,9 @@ namespace MedicineStore.Models
         public string? Notes { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
-
+        [ValidateNever]
         public Supplier Supplier { get; set; }
+        [ValidateNever]
         public Staff Staff { get; set; }
 
         public ICollection<PurchaseDetail> PurchaseDetails { get; set; }
