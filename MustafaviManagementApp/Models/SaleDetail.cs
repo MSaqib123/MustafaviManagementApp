@@ -14,7 +14,8 @@ namespace MedicineStore.Models
         public int Quantity { get; set; }
         public decimal UnitPrice { get; set; }
         public decimal Discount { get; set; }
-        public decimal SubTotal => (Quantity * UnitPrice - Discount);
+        public decimal SubTotal { get; set; }
+        //public decimal SubTotal { get; set; } => (Quantity * UnitPrice - Discount);
 
         [ValidateNever]
         public Sale Sale { get; set; }

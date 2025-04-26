@@ -97,37 +97,33 @@
         .prod-card .fw-bold {
             flex-shrink: 0
         }
+
         @@keyframes pop {
-            0%
+            0% {
+                transform: scale(1)
+            }
 
-        {
-            transform: scale(1)
+            50% {
+                transform: scale(1.07)
+            }
+
+            100% {
+                transform: scale(1)
+            }
         }
 
-        50% {
-            transform: scale(1.07)
-        }
-
-        100% {
-            transform: scale(1)
-        }
-
-        }
         @@media (max-width:768px) {
-            .prod-grid
-
-        {
-            grid-template-columns: repeat(auto-fill,minmax(140px,1fr))
-        }
-
+            .prod-grid {
+                grid-template-columns: repeat(auto-fill,minmax(140px,1fr))
+            }
         }</style>
 </head>
 
 <body>
-    <form id="posForm" method="post" action="/POS/Index">
-        <input type="hidden" name="itemsJson" id="itemsJson">
-        <input type="hidden" name="actionType" id="actionType">
-        <input type="hidden" name="saleId" id="saleId">
+    @* <form id="posForm" method="post" action="/POS/Index">
+        <input type="hidden" name="itemsJson" id="itemsJson" />
+        <input type="hidden" name="actionType" id="actionType" />
+        <input type="hidden" name="saleId" id="saleId" />
 
         <!-- NAVBAR -->
 
@@ -185,9 +181,9 @@
                 <div class="mt-auto small">
                     <div class="sum-line">SubTotal<span id="sumSub">0</span></div>
                     <div class="input-group input-group-sm my-1">
-                        <span class="input-group-text">Discount</span>
-                        <input id="discVal" class="form-control" value="0">
-                        <select id="discType" class="form-select w-auto">
+                        <span class="input-group-text" >Discount</span>
+                        <input id="discVal" class="form-control" value="0" name="OverallDiscount">
+                        <select id="discType" class="form-select w-auto" name="DiscountIsPercent">
                             <option value="pct" selected>%</option>
                             <option value="rs">Rs</option>
                         </select>
@@ -195,7 +191,7 @@
                     <div class="sum-line">Discount<span id="sumDisc">0</span></div>
                     <div class="input-group input-group-sm my-1">
                         <span class="input-group-text">VAT %</span>
-                        <input id="vatVal" class="form-control" value="@defaultVat">
+                        <input id="vatVal" class="form-control" value="@defaultVat" name="VATPercent">
                     </div>
                     <div class="sum-line">VAT<span id="sumVat">0</span></div>
                     <div class="sum-grand border-top pt-1 mt-1">Grand<span id="sumGrand">0</span></div>
@@ -222,6 +218,154 @@
             </div>
             <div class="offcanvas-body p-2">
                 <div id="heldGrid" class="row g-2 text-center text-muted w-100">Loading…</div>
+            </div>
+        </div>
+    </form>
+ *@
+
+    <form id="posForm" method="post" action="/POS/Index">
+        <input type="hidden" name="itemsJson" id="itemsJson" />
+        <input type="hidden" name="actionType" id="actionType" />
+        <input type="hidden" name="saleId" id="saleId" />
+
+        <nav class="navbar navbar-expand-lg bg-white shadow-sm sticky-top">
+            <div class="container-fluid">
+                <a class="navbar-brand fw-semibold" href="/">
+                    <i class="bi-capsule-pill me-1"></i>POS
+                </a>
+                <div class="flex-grow-1 mx-2 position-relative">
+                    <i class="bi-search position-absolute top-50 start-0 translate-middle-y text-muted ms-3"
+                       style="z-index:2;"></i>
+                    <input id="searchBox"
+                           class="form-control ps-5"
+                           type="text"
+                           placeholder="Search medicine…"
+                           style="padding-left:2.2rem;" />
+                </div>
+                <button class="btn position-relative me-3"
+                        data-bs-toggle="offcanvas"
+                        data-bs-target="#cartCanvas"
+                        type="button">
+                    <i class="bi-cart fs-4"></i>
+                    <span id="cartBadge" class="position-absolute top-0 badge bg-danger rounded-pill">0</span>
+                </button>
+                <button id="btnHeldOrders"
+                        class="btn position-relative"
+                        data-bs-toggle="offcanvas"
+                        data-bs-target="#heldCanvas"
+                        title="Held Orders"
+                        type="button">
+                    <i class="bi-hourglass-split fs-4"></i>
+                </button>
+            </div>
+        </nav>
+
+        <!-- ░░ CATEGORY BAR ░░ -->
+        <ul id="catBar" class="nav nav-pills nav-scroll px-3 mt-2 pb-1"></ul>
+
+        <!-- ░░ PRODUCT GRID ░░ -->
+        <div class="container-fluid mt-2 pb-4">
+            <div id="gridWrap" class="prod-grid"></div>
+        </div>
+
+        <!-- ░░ CART OFFCANVAS ░░ -->
+        <div class="offcanvas offcanvas-end" id="cartCanvas">
+            <div class="offcanvas-header">
+                <h5 class="offcanvas-title"><i class="bi-cart me-1"></i>Cart</h5>
+                <button class="btn-close" data-bs-dismiss="offcanvas"></button>
+            </div>
+            <div class="offcanvas-body d-flex flex-column p-2">
+                <table class="table table-sm cart-table mb-1">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Item</th>
+                            <th class="text-center" style="width:80px">Qty</th>
+                            <th class="text-end" style="width:80px">Rate</th>
+                            <th class="text-end" style="width:80px">Total</th>
+                            <th style="width:30px"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="cartBody"></tbody>
+                </table>
+                <div id="emptyMsg" class="text-center text-muted small">Cart empty</div>
+
+                <div class="mt-auto small">
+                    <div class="sum-line">
+                        SubTotal
+                        <span id="sumSub">0</span>
+                    </div>
+
+                    <!-- Overall discount -->
+                    <div class="input-group input-group-sm my-1">
+                        <span class="input-group-text">Discount</span>
+                        <input name="OverallDiscount"
+                               id="discVal"
+                               class="form-control"
+                               value="0" />
+                        <select name="DiscountIsPercent"
+                                id="discType"
+                                class="form-select w-auto">
+                            <option value="true" selected>%</option>
+                            <option value="false">Rs</option>
+                        </select>
+                    </div>
+                    <div class="sum-line">
+                        Discount<span id="sumDisc">0</span>
+                    </div>
+
+                    <!-- VAT -->
+                    <div class="input-group input-group-sm my-1">
+                        <span class="input-group-text">VAT %</span>
+                        <input name="VATPercent"
+                               id="vatVal"
+                               class="form-control"
+                               value="@defaultVat" />
+                    </div>
+                    <div class="sum-line">
+                        VAT<span id="sumVat">0</span>
+                    </div>
+
+                    <div class="sum-grand border-top pt-1 mt-1">
+                        Grand<span id="sumGrand">0</span>
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2 mt-2">
+                    <button type="button" class="btn btn-primary" id="btnPay">
+                        Pay & Print
+                    </button>
+                    <button type="button" class="btn btn-secondary" id="btnHold">
+                        Hold
+                    </button>
+                    <button type="button"
+                            class="btn btn-success"
+                            id="btnUpdateHold"
+                            style="display:none">
+                        Update Held Order
+                    </button>
+                    <button type="button"
+                            class="btn btn-outline-danger btn-sm"
+                            id="btnClear">
+                        Clear
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ░░ HELD ORDERS ░░ -->
+        <div class="offcanvas offcanvas-end" id="heldCanvas">
+            <div class="offcanvas-header">
+                <h5 class="offcanvas-title">
+                    <i class="bi-hourglass-split me-1"></i>Held Orders
+                    <span id="heldTotalBadge" class="badge bg-secondary ms-2">0 items</span>
+                </h5>
+                <button class="btn-close" data-bs-dismiss="offcanvas"></button>
+            </div>
+            <div class="offcanvas-body p-2">
+                <div id="heldGrid"
+                     class="row g-2 text-center text-muted w-100">
+                    Loading…
+                </div>
             </div>
         </div>
     </form>
@@ -276,17 +420,25 @@
                   itemsFld = qs('#itemsJson'),
                   actionFld = qs('#actionType'),
                   saleFld = qs('#saleId');
-            const serialize = ()=> JSON.stringify(
-              this.cart.map(l=>({
-                MedicineId:l.id,
-                MedicineName:l.name,
-                Quantity:l.qty,
-                UnitPrice:l.price,
-                Discount:0,
-                BatchNumber:"",
-                ExpiryDate:null
-              }))
-            );
+                  const serialize = () => JSON.stringify(
+                    this.cart.map(l => {
+                        console.log("l value : ", l)
+                    const lineDiscount = l.discount || 0;
+                    const lineSubTotal = (l.qty * l.price) - lineDiscount;
+                    return {
+                        MedicineId:  l.id,
+                        MedicineName:l.name,
+                        Quantity:    l.qty,
+                        UnitPrice:   l.price,
+                        Discount:    lineDiscount,
+                        BatchNumber: "",
+                        ExpiryDate:  null,
+                        SubTotal:    lineSubTotal || 0    // if lineSubTotal is NaN/null/0-ish, we get 0
+                    };
+                    })
+                );
+
+            console.log(serialize)
 
             // New Hold
             qs('#btnHold').onclick = ()=>{

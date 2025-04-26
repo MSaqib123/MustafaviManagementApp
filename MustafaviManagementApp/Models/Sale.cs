@@ -11,6 +11,10 @@ namespace MedicineStore.Models
         public int? StaffId { get; set; }
         public DateTime SaleDate { get; set; }
         public decimal TotalAmount { get; set; }
+
+        public decimal TotalAmountBeforDiscount { get; set; }
+        public decimal TotalAmountBeforVAT { get; set; }
+
         public decimal Discount { get; set; }
         public string PaymentMethod { get; set; }
         public string PaymentStatus { get; set; }

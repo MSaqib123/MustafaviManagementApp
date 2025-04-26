@@ -1,8 +1,4 @@
-﻿//===================================================================
-//========================= Version # 3 =============================
-//===================================================================
-// 100 % file content – replace the whole controller
-using MedicineStore.Data;
+﻿using MedicineStore.Data;
 using MedicineStore.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -16,24 +12,20 @@ namespace MustafaviManagementApp.Controllers
         private readonly AppDbContext _db;
         public POSController(AppDbContext db) => _db = db;
 
-        /* ───────────── index view ───────────── */
+        // ─────────── INDEX ───────────
         public async Task<IActionResult> Index()
         {
             await LoadDropdowns();
             return View(new POSViewModel { StaffId = 1 });
         }
 
-        /* ───────────── pay / hold / recall update ───────────── */
+        // ─── PAY / HOLD / RECALL ───
         [HttpPost]
-        public async Task<IActionResult> Index(
-            string itemsJson,
-            POSViewModel vm,
-            string actionType,
-            int? saleId              // null → new hold or pay,   id → update/pay
-        )
+        public async Task<IActionResult> Index(string itemsJson, POSViewModel vm, string actionType, int? saleId)
         {
             await LoadDropdowns();
 
+            // 1) rehydrate
             if (!string.IsNullOrWhiteSpace(itemsJson))
                 vm.Items = JsonConvert.DeserializeObject<List<POSLineItem>>(itemsJson)!;
 
@@ -43,51 +35,51 @@ namespace MustafaviManagementApp.Controllers
                 return View(vm);
             }
 
-            /* ── 1) if we’re paying a held order – free the reservation, delete it ── */
+            // 2) if paying a previously held order ⇒ release & delete
             if (actionType == "Pay" && saleId.HasValue)
             {
-                var oldHeld = await _db.Sales
+                var held = await _db.Sales
                     .Include(s => s.SaleDetails)
                     .FirstOrDefaultAsync(s => s.SaleId == saleId && s.IsHeld);
-
-                if (oldHeld != null)
+                if (held != null)
                 {
-                    foreach (var d in oldHeld.SaleDetails)
+                    foreach (var d in held.SaleDetails)
                     {
                         var inv = await _db.Inventorys.FirstAsync(i => i.MedicineId == d.MedicineId);
-                        inv.ReservedQty -= d.Quantity;   // release reservation
-                        inv.QuantityOnHand -= d.Quantity; // now ship it
+                        inv.ReservedQty -= d.Quantity;   // un-reserve
+                        inv.QuantityOnHand -= d.Quantity; // ship it
                     }
-                    _db.SaleDetails.RemoveRange(oldHeld.SaleDetails);
-                    _db.Sales.Remove(oldHeld);
+                    _db.SaleDetails.RemoveRange(held.SaleDetails);
+                    _db.Sales.Remove(held);
                     await _db.SaveChangesAsync();
                 }
             }
 
-            /* ── 2) create new Sale header (held or paid) ── */
+            // 3) create new Sale header
             var sale = new Sale
             {
-                CustomerId = vm.CustomerId,
-                StaffId = vm.StaffId == 0 ? 1 : vm.StaffId,
-                SaleDate = DateTime.Now,
-                TotalAmount = vm.GrandTotal,
-                Discount = vm.DiscountValue,
-                PaymentMethod = vm.PaymentMethod,
-                PaymentStatus = actionType == "Hold" ? "Pending" : "Paid",
-                IsHeld = actionType == "Hold",
-                CreatedAt = DateTime.Now
+                CustomerId                  = (vm.CustomerId==null) ? 1 : null,
+                StaffId                     = vm.StaffId == 0 ? 1 : vm.StaffId,
+                SaleDate                    = DateTime.Now,
+                TotalAmountBeforDiscount    = vm.Gross,            // ← new
+                TotalAmountBeforVAT         = vm.Gross,              // ← new
+                Discount                    = vm.DiscountValue,
+                TotalAmount                 = vm.GrandTotal,
+                PaymentMethod               = vm.PaymentMethod,
+                PaymentStatus               = actionType == "Hold" ? "Pending" : "Paid",
+                IsHeld                      = actionType == "Hold",
+                CreatedAt                   = DateTime.Now
             };
             _db.Sales.Add(sale);
-            await _db.SaveChangesAsync();             // we need SaleId
+            await _db.SaveChangesAsync();
 
-            /* ── 3) line-items ── */
+            // 4) line-items
             foreach (var l in vm.Items)
             {
                 var inv = await _db.Inventorys.FirstAsync(i => i.MedicineId == l.MedicineId);
 
                 if (actionType == "Hold")
                 {
-                    // reserve stock
                     if (inv.QuantityOnHand - inv.ReservedQty < l.Quantity)
                     {
                         ModelState.AddModelError("", $"{l.MedicineName} out of stock");
@@ -95,7 +87,7 @@ namespace MustafaviManagementApp.Controllers
                     }
                     inv.ReservedQty += l.Quantity;
                 }
-                else // Pay (new checkout)
+                else // Pay
                 {
                     if (inv.QuantityOnHand - inv.ReservedQty < l.Quantity)
                     {
@@ -107,45 +99,46 @@ namespace MustafaviManagementApp.Controllers
 
                 _db.SaleDetails.Add(new SaleDetail
                 {
-                    SaleId = sale.SaleId,
+                    SaleId     = sale.SaleId,
                     MedicineId = l.MedicineId,
-                    Quantity = l.Quantity,
-                    UnitPrice = l.UnitPrice,
-                    Discount = l.Discount
+                    Quantity   = l.Quantity,
+                    UnitPrice  = l.UnitPrice,
+                    Discount   = l.Discount,
+                    SubTotal   = l.Quantity * l.UnitPrice - l.Discount   // ← new
                 });
             }
 
-            /* ── 4) payment row only for Pay ── */
+            // 5) real payment? (only on Pay)
             if (actionType == "Pay")
             {
                 _db.Payments.Add(new Payment
                 {
                     ReferenceType = "Sale",
-                    ReferenceId = sale.SaleId,
-                    TotalAmount = sale.TotalAmount,
-                    Status = "Completed",
-                    PaymentDate = DateTime.Now,
-                    CreatedAt = DateTime.Now
+                    ReferenceId   = sale.SaleId,
+                    TotalAmount   = sale.TotalAmount,
+                    Status        = "Completed",
+                    PaymentDate   = DateTime.Now,
+                    CreatedAt     = DateTime.Now
                 });
             }
 
             await _db.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));     // fresh screen
+            return RedirectToAction(nameof(Index));
         }
 
-        /* ── update an existing held basket (Qty / items) ── */
+        // ─── UPDATE HELD ───
         [HttpPost]
-        public async Task<IActionResult> UpdateHold(
-            int saleId, string itemsJson, POSViewModel vm)
+        public async Task<IActionResult> UpdateHold(int saleId, string itemsJson, POSViewModel vm)
         {
             if (!string.IsNullOrEmpty(itemsJson))
                 vm.Items = JsonConvert.DeserializeObject<List<POSLineItem>>(itemsJson)!;
 
-            var sale = await _db.Sales.Include(s => s.SaleDetails)
-                                      .FirstOrDefaultAsync(s => s.SaleId == saleId && s.IsHeld);
+            var sale = await _db.Sales
+                .Include(s => s.SaleDetails)
+                .FirstOrDefaultAsync(s => s.SaleId == saleId && s.IsHeld);
             if (sale == null) return NotFound();
 
-            /* 1) restore reservations */
+            // 1) un-reserve old
             foreach (var old in sale.SaleDetails)
             {
                 var inv = await _db.Inventorys.FirstAsync(i => i.MedicineId == old.MedicineId);
@@ -154,7 +147,7 @@ namespace MustafaviManagementApp.Controllers
             _db.SaleDetails.RemoveRange(sale.SaleDetails);
             await _db.SaveChangesAsync();
 
-            /* 2) write new details & re-reserve */
+            // 2) re-reserve new lines
             foreach (var l in vm.Items)
             {
                 var inv = await _db.Inventorys.FirstAsync(i => i.MedicineId == l.MedicineId);
@@ -167,27 +160,35 @@ namespace MustafaviManagementApp.Controllers
 
                 _db.SaleDetails.Add(new SaleDetail
                 {
-                    SaleId = sale.SaleId,
+                    SaleId     = sale.SaleId,
                     MedicineId = l.MedicineId,
-                    Quantity = l.Quantity,
-                    UnitPrice = l.UnitPrice,
-                    Discount = l.Discount
+                    Quantity   = l.Quantity,
+                    UnitPrice  = l.UnitPrice,
+                    Discount   = l.Discount,
+                    SubTotal   = l.Quantity * l.UnitPrice - l.Discount
                 });
             }
-            sale.TotalAmount = vm.GrandTotal;
-            sale.Discount = vm.DiscountValue;
-            sale.UpdatedAt = DateTime.Now;
+
+            // 3) update header totals
+            sale.TotalAmountBeforDiscount  = vm.Gross;
+            sale.TotalAmountBeforVAT       = vm.Gross;
+            sale.Discount                  = vm.DiscountValue;
+            sale.TotalAmount               = vm.GrandTotal;
+            sale.UpdatedAt                 = DateTime.Now;
+
             await _db.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        /* ── delete a held basket ── */
+        // ─── DELETE HELD ───
         [HttpPost]
         public async Task<IActionResult> DeleteHold(int id)
         {
-            var sale = await _db.Sales.Include(s => s.SaleDetails)
-                                      .FirstOrDefaultAsync(s => s.SaleId == id && s.IsHeld);
+            var sale = await _db.Sales
+                .Include(s => s.SaleDetails)
+                .FirstOrDefaultAsync(s => s.SaleId == id && s.IsHeld);
             if (sale == null) return NotFound();
+
             foreach (var d in sale.SaleDetails)
             {
                 var inv = await _db.Inventorys.FirstAsync(i => i.MedicineId == d.MedicineId);
@@ -199,80 +200,74 @@ namespace MustafaviManagementApp.Controllers
             return Ok();
         }
 
-        /* ───── JSON helpers for UI ───── */
+        // ─── JSON FOR UI ───
         [HttpGet]
         public async Task<IActionResult> GetHeldOrders() =>
-            Json(await _db.Sales.Where(s => s.IsHeld)
-                    .Select(s => new {
-                        saleId = s.SaleId,
-                        totalAmount = s.TotalAmount,
-                        totalQty = s.SaleDetails.Sum(d => d.Quantity)
-                    })
-                    .OrderByDescending(s => s.saleId)
-                    .ToListAsync());
+            Json(await _db.Sales
+                .Where(s => s.IsHeld)
+                .Select(s => new {
+                    saleId      = s.SaleId,
+                    totalAmount = s.TotalAmount,
+                    totalQty    = s.SaleDetails.Sum(d => d.Quantity)
+                })
+                .OrderByDescending(x => x.saleId)
+                .ToListAsync());
 
         [HttpGet]
         public async Task<IActionResult> GetHeldOrder(int id)
         {
-            var s = await _db.Sales.Include(x => x.SaleDetails)
-                                   .ThenInclude(d => d.Medicine)
-                                   .FirstOrDefaultAsync(x => x.SaleId == id && x.IsHeld);
+            var s = await _db.Sales
+                .Include(x => x.SaleDetails).ThenInclude(d => d.Medicine)
+                .FirstOrDefaultAsync(x => x.SaleId == id && x.IsHeld);
             if (s == null) return NotFound();
+
             return Json(new
             {
-                overallDiscount = s.Discount,
-                discountIsPercent = true,
-                vatPercent = 0,
+                overallDiscount    = s.Discount,
+                discountIsPercent  = true,
+                vatPercent         = 0,
                 items = s.SaleDetails.Select(d => new {
-                    medicineId = d.MedicineId,
+                    medicineId   = d.MedicineId,
                     medicineName = d.Medicine.MedicineName,
-                    quantity = d.Quantity,
-                    unitPrice = d.UnitPrice
+                    quantity     = d.Quantity,
+                    unitPrice    = d.UnitPrice,
+                    discount     = d.Discount,
+                    subTotal     = d.SubTotal
                 })
             });
         }
 
-        /* ───── helpers ───── */
+        // ─── LOAD DROPDOWNS ───
         private async Task LoadDropdowns()
         {
-            // medicines for UI
             ViewBag.MedicinesLite = await _db.Medicines
                 .Select(m => new {
-                    m.MedicineId,
-                    m.MedicineName,
-                    m.CategoryId,
-                    UnitPrice = m.SingleUnitPrice ?? m.CotanUnitPrice
+                  m.MedicineId,
+                  m.MedicineName,
+                  m.CategoryId,
+                  UnitPrice = m.SingleUnitPrice ?? m.CotanUnitPrice
                 })
                 .ToListAsync();
 
-            // available stock = total on hand minus those reserved by held orders
+            // Available = on‐hand minus reserved
             ViewBag.InventoryLite = await _db.Inventorys
                 .Select(i => new {
-                    i.MedicineId,
-                    QuantityOnHand = i.QuantityOnHand - i.ReservedQty
+                  i.MedicineId,
+                  QuantityOnHand = i.QuantityOnHand - i.ReservedQty
                 })
                 .ToListAsync();
 
             ViewBag.CategoriesLite = await _db.Categorys
-                .Select(c => new {
-                    c.CategoryId,
-                    c.CategoryName
-                })
+                .Select(c => new { c.CategoryId, c.CategoryName })
                 .ToListAsync();
 
-            // for dropdown lists (if you ever need them)
             ViewBag.Categories = await _db.Categorys.ToListAsync();
-            ViewBag.Medicines = await _db.Medicines.ToListAsync();
-            ViewBag.Customers = await _db.Customers.ToListAsync();
-            ViewBag.Staffs = await _db.Staffs.ToListAsync();
+            ViewBag.Medicines  = await _db.Medicines.ToListAsync();
+            ViewBag.Customers  = await _db.Customers.ToListAsync();
+            ViewBag.Staffs     = await _db.Staffs.ToListAsync();
         }
-
-
-
-
     }
 }
-
 
 //===================================================================
 //========================= Version # 2 =============================
