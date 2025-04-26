@@ -165,7 +165,7 @@
         <div class="offcanvas offcanvas-end" id="cartCanvas">
             <div class="offcanvas-header">
                 <h5 class="offcanvas-title"><i class="bi-cart me-1"></i>Cart</h5>
-                <button class="btn-close" data-bs-dismiss="offcanvas"></button>
+                <button class="btn-close" data-bs-dismiss="offcanvas" type="button"></button>
             </div>
             <div class="offcanvas-body d-flex flex-column p-2">
                 <table class="table table-sm cart-table mb-1">
@@ -218,7 +218,7 @@
                     Held Orders
                     <span id="heldTotalBadge" class="badge bg-secondary ms-2">0 items</span>
                 </h5>
-                <button class="btn-close" data-bs-dismiss="offcanvas"></button>
+                <button class="btn-close" data-bs-dismiss="offcanvas" type="button"></button>
             </div>
             <div class="offcanvas-body p-2">
                 <div id="heldGrid" class="row g-2 text-center text-muted w-100">Loading…</div>
@@ -348,10 +348,10 @@
                       <h6 class="card-title mb-1">Order #${o.saleId}</h6>
                       <p class="small mb-2">Items: ${o.totalQty}<br>Total: ${money(o.totalAmount)} PKR</p>
                       <div class="d-flex gap-1">
-                        <button class="btn btn-outline-primary flex-fill recall-btn" data-id="${o.saleId}" title="Recall">
+                        <button class="btn btn-outline-primary flex-fill recall-btn" data-id="${o.saleId}" title="Recall" type="button">
                           <i class="bi-arrow-counterclockwise"></i>
                         </button>
-                        <button class="btn btn-outline-danger flex-fill delete-btn" data-id="${o.saleId}" title="Delete">
+                        <button class="btn btn-outline-danger flex-fill delete-btn" data-id="${o.saleId}" title="Delete" type="button">
                           <i class="bi-trash"></i>
                         </button>
                       </div>
@@ -563,6 +563,7 @@
         }
 
         const pos = new POS();
+
     </script>
 </body>
 </html>
