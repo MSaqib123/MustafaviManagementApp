@@ -19,7 +19,7 @@ namespace MedicineStore.Models
         public Supplier Supplier { get; set; }
         [ValidateNever]
         public Staff Staff { get; set; }
-
+        [ValidateNever]
         public ICollection<PurchaseDetail> PurchaseDetails { get; set; }
     }
 

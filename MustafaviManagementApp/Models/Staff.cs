@@ -18,7 +18,9 @@ namespace MedicineStore.Models
         public DateTime? UpdatedAt { get; set; }
         [ValidateNever]
         public Store Store { get; set; }
+        [ValidateNever]
         public ICollection<Purchase> Purchases { get; set; }
+        [ValidateNever]
         public ICollection<Sale> Sales { get; set; }
     }
 

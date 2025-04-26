@@ -1,13 +1,18 @@
 ﻿namespace MustafaviManagementApp.ViewModels
 {
 
-    public class POSLineItem
+    public record POSLineItem(
+        int MedicineId,
+        string MedicineName,
+        int Quantity,
+        decimal UnitPrice,
+        decimal Discount,
+        string BatchNumber,
+        DateTime? ExpiryDate
+    )
     {
-        public int MedicineId { get; set; }
-        public string MedicineName { get; set; }
-        public int Quantity { get; set; }
-        public decimal UnitPrice { get; set; }
-        public decimal Discount { get; set; }
         public decimal SubTotal => Quantity * UnitPrice - Discount;
     }
+
+
 }

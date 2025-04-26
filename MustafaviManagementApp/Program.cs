@@ -1,5 +1,6 @@
 using MedicineStore.Data;
 using Microsoft.EntityFrameworkCore;
+using MustafaviManagementApp.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,8 +11,19 @@ builder.Services.AddControllersWithViews();
 // Register DbContext
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services
+    .AddControllersWithViews()
+    .AddJsonOptions(opts =>
+    {
+        opts.JsonSerializerOptions.ReferenceHandler =
+              System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+    });
+
+builder.Services.AddHostedService<HoldOrderCleaner>();
 
 var app = builder.Build();
+
+
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())

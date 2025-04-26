@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using System;
 using System.Collections.Generic;
 
@@ -15,8 +16,9 @@ namespace MedicineStore.Models
         public decimal Discount { get; set; }
 
         public decimal SubTotal => (Quantity * CostPrice - Discount);
-
+        [ValidateNever]
         public Purchase Purchase { get; set; }
+        [ValidateNever]
         public Medicine Medicine { get; set; }
     }
 

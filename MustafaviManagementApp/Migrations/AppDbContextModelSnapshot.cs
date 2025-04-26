@@ -86,6 +86,8 @@ namespace MustafaviManagementApp.Migrations
 
                     b.HasKey("CustomerId");
 
+                    b.HasIndex("StoreId");
+
                     b.ToTable("Customers");
                 });
 
@@ -117,6 +119,8 @@ namespace MustafaviManagementApp.Migrations
 
                     b.HasKey("DailySummaryId");
 
+                    b.HasIndex("StoreId");
+
                     b.ToTable("DailySummarys");
                 });
 
@@ -144,6 +148,9 @@ namespace MustafaviManagementApp.Migrations
                         .HasColumnType("int");
 
                     b.Property<int>("QuantityOnHand")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ReservedQty")
                         .HasColumnType("int");
 
                     b.Property<DateTime?>("UpdatedAt")
@@ -282,6 +289,8 @@ namespace MustafaviManagementApp.Migrations
 
                     b.HasKey("PaymentDetailId");
 
+                    b.HasIndex("PaymentId");
+
                     b.ToTable("PaymentDetails");
                 });
 
@@ -313,6 +322,8 @@ namespace MustafaviManagementApp.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasKey("PrescriptionId");
+
+                    b.HasIndex("SaleId");
 
                     b.ToTable("Prescriptions");
                 });
@@ -352,6 +363,10 @@ namespace MustafaviManagementApp.Migrations
 
                     b.HasKey("PurchaseId");
 
+                    b.HasIndex("StaffId");
+
+                    b.HasIndex("SupplierId");
+
                     b.ToTable("Purchases");
                 });
 
@@ -388,6 +403,8 @@ namespace MustafaviManagementApp.Migrations
 
                     b.HasIndex("MedicineId");
 
+                    b.HasIndex("PurchaseId");
+
                     b.ToTable("PurchaseDetails");
                 });
 
@@ -408,6 +425,9 @@ namespace MustafaviManagementApp.Migrations
                     b.Property<decimal>("Discount")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<bool>("IsHeld")
+                        .HasColumnType("bit");
+
                     b.Property<string>("PaymentMethod")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -419,7 +439,7 @@ namespace MustafaviManagementApp.Migrations
                     b.Property<DateTime>("SaleDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("StaffId")
+                    b.Property<int?>("StaffId")
                         .HasColumnType("int");
 
                     b.Property<decimal>("TotalAmount")
@@ -429,6 +449,10 @@ namespace MustafaviManagementApp.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasKey("SaleId");
+
+                    b.HasIndex("CustomerId");
+
+                    b.HasIndex("StaffId");
 
                     b.ToTable("Sales");
                 });
@@ -465,6 +489,8 @@ namespace MustafaviManagementApp.Migrations
                     b.HasKey("SaleDetailId");
 
                     b.HasIndex("MedicineId");
+
+                    b.HasIndex("SaleId");
 
                     b.ToTable("SaleDetails");
                 });
@@ -506,6 +532,8 @@ namespace MustafaviManagementApp.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasKey("StaffId");
+
+                    b.HasIndex("StoreId");
 
                     b.ToTable("Staffs");
                 });
@@ -574,28 +602,54 @@ namespace MustafaviManagementApp.Migrations
 
                     b.HasKey("SupplierId");
 
+                    b.HasIndex("StoreId");
+
                     b.ToTable("Suppliers");
+                });
+
+            modelBuilder.Entity("MedicineStore.Models.Customer", b =>
+                {
+                    b.HasOne("MedicineStore.Models.Store", "Store")
+                        .WithMany("Customers")
+                        .HasForeignKey("StoreId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Store");
+                });
+
+            modelBuilder.Entity("MedicineStore.Models.DailySummary", b =>
+                {
+                    b.HasOne("MedicineStore.Models.Store", "Store")
+                        .WithMany("DailySummaries")
+                        .HasForeignKey("StoreId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Store");
                 });
 
             modelBuilder.Entity("MedicineStore.Models.Inventory", b =>
                 {
-                    b.HasOne("MedicineStore.Models.Medicine", null)
+                    b.HasOne("MedicineStore.Models.Medicine", "Medicine")
                         .WithMany("Inventories")
                         .HasForeignKey("MedicineId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Medicine");
                 });
 
             modelBuilder.Entity("MedicineStore.Models.Medicine", b =>
                 {
                     b.HasOne("MedicineStore.Models.Category", "Category")
-                        .WithMany()
+                        .WithMany("Medicines")
                         .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("MedicineStore.Models.Store", "Store")
-                        .WithMany()
+                        .WithMany("Medicines")
                         .HasForeignKey("StoreId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -605,22 +659,125 @@ namespace MustafaviManagementApp.Migrations
                     b.Navigation("Store");
                 });
 
+            modelBuilder.Entity("MedicineStore.Models.PaymentDetail", b =>
+                {
+                    b.HasOne("MedicineStore.Models.Payment", "Payment")
+                        .WithMany("PaymentDetails")
+                        .HasForeignKey("PaymentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Payment");
+                });
+
+            modelBuilder.Entity("MedicineStore.Models.Prescription", b =>
+                {
+                    b.HasOne("MedicineStore.Models.Sale", "Sale")
+                        .WithMany("Prescriptions")
+                        .HasForeignKey("SaleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Sale");
+                });
+
+            modelBuilder.Entity("MedicineStore.Models.Purchase", b =>
+                {
+                    b.HasOne("MedicineStore.Models.Staff", "Staff")
+                        .WithMany("Purchases")
+                        .HasForeignKey("StaffId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("MedicineStore.Models.Supplier", "Supplier")
+                        .WithMany("Purchases")
+                        .HasForeignKey("SupplierId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Staff");
+
+                    b.Navigation("Supplier");
+                });
+
             modelBuilder.Entity("MedicineStore.Models.PurchaseDetail", b =>
                 {
-                    b.HasOne("MedicineStore.Models.Medicine", null)
+                    b.HasOne("MedicineStore.Models.Medicine", "Medicine")
                         .WithMany("PurchaseDetails")
                         .HasForeignKey("MedicineId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("MedicineStore.Models.Purchase", "Purchase")
+                        .WithMany("PurchaseDetails")
+                        .HasForeignKey("PurchaseId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Medicine");
+
+                    b.Navigation("Purchase");
+                });
+
+            modelBuilder.Entity("MedicineStore.Models.Sale", b =>
+                {
+                    b.HasOne("MedicineStore.Models.Customer", "Customer")
+                        .WithMany()
+                        .HasForeignKey("CustomerId");
+
+                    b.HasOne("MedicineStore.Models.Staff", "Staff")
+                        .WithMany("Sales")
+                        .HasForeignKey("StaffId");
+
+                    b.Navigation("Customer");
+
+                    b.Navigation("Staff");
                 });
 
             modelBuilder.Entity("MedicineStore.Models.SaleDetail", b =>
                 {
-                    b.HasOne("MedicineStore.Models.Medicine", null)
+                    b.HasOne("MedicineStore.Models.Medicine", "Medicine")
                         .WithMany("SaleDetails")
                         .HasForeignKey("MedicineId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("MedicineStore.Models.Sale", "Sale")
+                        .WithMany("SaleDetails")
+                        .HasForeignKey("SaleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Medicine");
+
+                    b.Navigation("Sale");
+                });
+
+            modelBuilder.Entity("MedicineStore.Models.Staff", b =>
+                {
+                    b.HasOne("MedicineStore.Models.Store", "Store")
+                        .WithMany("Staffs")
+                        .HasForeignKey("StoreId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Store");
+                });
+
+            modelBuilder.Entity("MedicineStore.Models.Supplier", b =>
+                {
+                    b.HasOne("MedicineStore.Models.Store", "Store")
+                        .WithMany("Suppliers")
+                        .HasForeignKey("StoreId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Store");
+                });
+
+            modelBuilder.Entity("MedicineStore.Models.Category", b =>
+                {
+                    b.Navigation("Medicines");
                 });
 
             modelBuilder.Entity("MedicineStore.Models.Medicine", b =>
@@ -630,6 +787,48 @@ namespace MustafaviManagementApp.Migrations
                     b.Navigation("PurchaseDetails");
 
                     b.Navigation("SaleDetails");
+                });
+
+            modelBuilder.Entity("MedicineStore.Models.Payment", b =>
+                {
+                    b.Navigation("PaymentDetails");
+                });
+
+            modelBuilder.Entity("MedicineStore.Models.Purchase", b =>
+                {
+                    b.Navigation("PurchaseDetails");
+                });
+
+            modelBuilder.Entity("MedicineStore.Models.Sale", b =>
+                {
+                    b.Navigation("Prescriptions");
+
+                    b.Navigation("SaleDetails");
+                });
+
+            modelBuilder.Entity("MedicineStore.Models.Staff", b =>
+                {
+                    b.Navigation("Purchases");
+
+                    b.Navigation("Sales");
+                });
+
+            modelBuilder.Entity("MedicineStore.Models.Store", b =>
+                {
+                    b.Navigation("Customers");
+
+                    b.Navigation("DailySummaries");
+
+                    b.Navigation("Medicines");
+
+                    b.Navigation("Staffs");
+
+                    b.Navigation("Suppliers");
+                });
+
+            modelBuilder.Entity("MedicineStore.Models.Supplier", b =>
+                {
+                    b.Navigation("Purchases");
                 });
 #pragma warning restore 612, 618
         }

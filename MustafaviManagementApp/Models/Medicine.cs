@@ -31,9 +31,11 @@ namespace MedicineStore.Models
         public Category Category { get; set; }
         [ValidateNever]
         public Store Store { get; set; }
-
+        [ValidateNever]
         public ICollection<Inventory> Inventories { get; set; }
+        [ValidateNever]
         public ICollection<PurchaseDetail> PurchaseDetails { get; set; }
+        [ValidateNever]
         public ICollection<SaleDetail> SaleDetails { get; set; }
     }
 

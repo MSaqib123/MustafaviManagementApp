@@ -11,6 +11,8 @@ namespace MedicineStore.Models
         public string? BatchNumber { get; set; }
         public DateTime? ExpiryDate { get; set; }
         public int QuantityOnHand { get; set; }
+        public int ReservedQty { get; set; }   // units inside “held” baskets
+
         public string? LocationInStore { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }

@@ -1,3 +1,4 @@
+using MedicineStore.Models;
 using Microsoft.EntityFrameworkCore;
 namespace MedicineStore.Data
 {
@@ -19,5 +20,31 @@ namespace MedicineStore.Data
     public DbSet<MedicineStore.Models.Payment> Payments { get; set; }
     public DbSet<MedicineStore.Models.PaymentDetail> PaymentDetails { get; set; }
     public DbSet<MedicineStore.Models.DailySummary> DailySummarys { get; set; }
+
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            /*  BREAK the extra cascade path  */
+            modelBuilder.Entity<Staff>()
+                .HasOne(s => s.Store)
+                .WithMany(st => st.Staffs)
+                .HasForeignKey(s => s.StoreId)
+                .OnDelete(DeleteBehavior.Restrict);   // or .NoAction() in EF-Core 5+
+
+
+            modelBuilder.Entity<PurchaseDetail>()
+        .HasOne(pd => pd.Purchase)
+        .WithMany(p => p.PurchaseDetails)
+        .HasForeignKey(pd => pd.PurchaseId)
+        // turn off cascade here:
+        .OnDelete(DeleteBehavior.Restrict);
+        }
+
+
     }
+
+
+
 }
