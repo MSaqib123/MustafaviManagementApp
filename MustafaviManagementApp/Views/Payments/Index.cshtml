@@ -6,7 +6,7 @@
 <h2>Payments</h2>
 
 <p>
-    <a asp-action="Create" class="btn btn-primary">Create New Payment</a>
+    @* <a asp-action="Create" class="btn btn-primary">Create New Payment</a> *@
 </p>
 
 <table class="table table-striped">
@@ -25,7 +25,7 @@
         @foreach (var pay in Model)
         {
             <tr>
-                <td>@pay.PaymentId</td>
+                <td>#@pay.PaymentId</td>
                 <td>@pay.ReferenceType</td>
                 <td>@pay.ReferenceId</td>
                 <td>@pay.TotalAmount.ToString("F2")</td>
@@ -34,7 +34,7 @@
                 <td>
                     <a asp-action="Edit" asp-route-id="@pay.PaymentId">Edit</a> |
                     <a asp-action="Details" asp-route-id="@pay.PaymentId">Details</a> |
-                    <a asp-action="Delete" asp-route-id="@pay.PaymentId">Delete</a>
+                    @* <a asp-action="Delete" asp-route-id="@pay.PaymentId">Delete</a> *@
                 </td>
             </tr>
         }

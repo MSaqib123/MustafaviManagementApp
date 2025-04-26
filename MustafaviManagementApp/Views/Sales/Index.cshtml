@@ -6,7 +6,7 @@
 <h2>Sales</h2>
 
 <p>
-    <a asp-action="Create" class="btn btn-primary">Create New Sale</a>
+    @* <a asp-action="Create" class="btn btn-primary">Create New Sale</a> *@
 </p>
 
 <table class="table table-striped">
@@ -25,7 +25,7 @@
         @foreach (var sale in Model)
         {
             <tr>
-                <td>@sale.SaleId</td>
+                <td>#@sale.SaleId</td>
                 <td>@sale.Customer?.CustomerName</td>
                 <td>@sale.Staff.StaffName</td>
                 <td>@sale.SaleDate.ToString("g")</td>
@@ -34,7 +34,7 @@
                 <td>
                     <a asp-action="Edit" asp-route-id="@sale.SaleId">Edit</a> |
                     <a asp-action="Details" asp-route-id="@sale.SaleId">Details</a> |
-                    <a asp-action="Delete" asp-route-id="@sale.SaleId">Delete</a>
+                    @* <a asp-action="Delete" asp-route-id="@sale.SaleId">Delete</a> *@
                 </td>
             </tr>
         }
