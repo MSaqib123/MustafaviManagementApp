@@ -2,6 +2,7 @@
 using MedicineStore.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using MustafaviManagementApp.Models;
 using MustafaviManagementApp.ViewModels;
 using Newtonsoft.Json;
 
@@ -86,6 +87,10 @@ namespace MustafaviManagementApp.Controllers
                         return View(vm);
                     }
                     inv.ReservedQty += l.Quantity;
+
+                    //------------- Leader ---------
+                    // 🔸 Ledger: RESERVE
+                    await LedgerEntry(l.MedicineId, -l.Quantity, "RESERVE", saleId: sale.SaleId);
                 }
                 else // Pay
                 {
@@ -95,6 +100,10 @@ namespace MustafaviManagementApp.Controllers
                         return View(vm);
                     }
                     inv.QuantityOnHand -= l.Quantity;
+
+                    //------------- Leader ---------
+                    // 🔸 Ledger: OUT
+                    //await LedgerEntry(l.MedicineId, -l.Quantity, "OUT", saleId: sale.SaleId);
                 }
 
                 _db.SaleDetails.Add(new SaleDetail
@@ -120,6 +129,13 @@ namespace MustafaviManagementApp.Controllers
                     PaymentDate   = DateTime.Now,
                     CreatedAt     = DateTime.Now
                 });
+
+                //------------- Leader ---------
+                // Ledger OUT
+                foreach (var itm in vm.Items)
+                {
+                    await LedgerEntry(itm.MedicineId, -itm.Quantity, "OUT", saleId: sale.SaleId);
+                }
             }
 
             await _db.SaveChangesAsync();
@@ -128,7 +144,8 @@ namespace MustafaviManagementApp.Controllers
 
         // ─── UPDATE HELD ───
         [HttpPost]
-        public async Task<IActionResult> UpdateHold(int saleId, string itemsJson, POSViewModel vm)
+        public async Task<IActionResult> UpdateHold(
+                int saleId, string itemsJson, POSViewModel vm)
         {
             if (!string.IsNullOrEmpty(itemsJson))
                 vm.Items = JsonConvert.DeserializeObject<List<POSLineItem>>(itemsJson)!;
@@ -138,47 +155,57 @@ namespace MustafaviManagementApp.Controllers
                 .FirstOrDefaultAsync(s => s.SaleId == saleId && s.IsHeld);
             if (sale == null) return NotFound();
 
-            // 1) un-reserve old
+            /* ─ 1️⃣ پُرانی لائنیں واپس (RELEASE) ─ */
             foreach (var old in sale.SaleDetails)
             {
-                var inv = await _db.Inventorys.FirstAsync(i => i.MedicineId == old.MedicineId);
-                inv.ReservedQty -= old.Quantity;
+                var inv = await _db.Inventorys
+                                   .FirstAsync(i => i.MedicineId == old.MedicineId);
+
+                inv.ReservedQty -= old.Quantity;                         // انوینٹری
+                await LedgerEntry(old.MedicineId, +old.Quantity,          // لیجر
+                                  "RELEASE", saleId: sale.SaleId);
             }
             _db.SaleDetails.RemoveRange(sale.SaleDetails);
             await _db.SaveChangesAsync();
 
-            // 2) re-reserve new lines
+            /* ─ 2️⃣ نئی لائنیں دوبارہ ریزرو (RESERVE) ─ */
             foreach (var l in vm.Items)
             {
-                var inv = await _db.Inventorys.FirstAsync(i => i.MedicineId == l.MedicineId);
+                var inv = await _db.Inventorys
+                                   .FirstAsync(i => i.MedicineId == l.MedicineId);
+
                 if (inv.QuantityOnHand - inv.ReservedQty < l.Quantity)
                 {
                     ModelState.AddModelError("", $"{l.MedicineName} out of stock");
                     return View("Index", vm);
                 }
-                inv.ReservedQty += l.Quantity;
+
+                inv.ReservedQty += l.Quantity;                           // انوینٹری
+                await LedgerEntry(l.MedicineId, -l.Quantity,              // لیجر
+                                  "RESERVE", saleId: sale.SaleId);
 
                 _db.SaleDetails.Add(new SaleDetail
                 {
-                    SaleId     = sale.SaleId,
+                    SaleId = sale.SaleId,
                     MedicineId = l.MedicineId,
-                    Quantity   = l.Quantity,
-                    UnitPrice  = l.UnitPrice,
-                    Discount   = l.Discount,
-                    SubTotal   = l.Quantity * l.UnitPrice - l.Discount
+                    Quantity = l.Quantity,
+                    UnitPrice = l.UnitPrice,
+                    Discount = l.Discount,
+                    SubTotal = l.Quantity * l.UnitPrice - l.Discount
                 });
             }
 
-            // 3) update header totals
-            sale.TotalAmountBeforDiscount  = vm.Gross;
-            sale.TotalAmountBeforVAT       = vm.Gross;
-            sale.Discount                  = vm.DiscountValue;
-            sale.TotalAmount               = vm.GrandTotal;
-            sale.UpdatedAt                 = DateTime.Now;
+            /* ─ 3️⃣ ہیڈر اپ ڈیٹ ─ */
+            sale.TotalAmountBeforDiscount = vm.Gross;
+            sale.TotalAmountBeforVAT = vm.Gross;
+            sale.Discount = vm.DiscountValue;
+            sale.TotalAmount = vm.GrandTotal;
+            sale.UpdatedAt = DateTime.Now;
 
             await _db.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
+
 
         // ─── DELETE HELD ───
         [HttpPost]
@@ -193,6 +220,15 @@ namespace MustafaviManagementApp.Controllers
             {
                 var inv = await _db.Inventorys.FirstAsync(i => i.MedicineId == d.MedicineId);
                 inv.ReservedQty -= d.Quantity;
+
+
+                /* 2️⃣ لیجر میں RELEASE انٹری (پلس Qty) */
+                await LedgerEntry(
+                    d.MedicineId,
+                    +d.Quantity,       // +ve because stock became available
+                    "RELEASE",
+                    saleId: sale.SaleId
+                );
             }
             _db.SaleDetails.RemoveRange(sale.SaleDetails);
             _db.Sales.Remove(sale);
@@ -266,6 +302,43 @@ namespace MustafaviManagementApp.Controllers
             ViewBag.Customers  = await _db.Customers.ToListAsync();
             ViewBag.Staffs     = await _db.Staffs.ToListAsync();
         }
+
+
+        private async Task LedgerEntry(
+        int medicineId, int qtyDelta, string action,
+        int? saleId = null, int? purchaseId = null)
+        {
+            // 1) پچھلا بیلنس
+            var balance = await _db.Inventorys
+                            .Where(i => i.MedicineId == medicineId)
+                            .Select(i => i.QuantityOnHand - i.ReservedQty)
+                            .FirstAsync();
+
+            // 2) لیجر میں لکھیں
+            var entry = new StockLedger
+            {
+                MedicineId = medicineId,
+                SaleId = saleId,
+                PurchaseId = purchaseId,
+                ActionType = action,          // IN / OUT / RESERVE / RELEASE
+                QtyChange = qtyDelta,        // +/-
+                QtyBeforeChange = balance,
+                BalanceAfter = balance + qtyDelta,
+                CreatedAt = DateTime.Now
+            };
+            _db.StockLedgers.Add(entry);
+
+            //// 3) انوینٹری ٹیبل بھی ساتھ ساتھ بدلے (اگر آپ نے OnHand رکھنا ہے)
+            //var inv = await _db.Inventorys.FirstAsync(i => i.MedicineId == medicineId);
+            //switch (action)
+            //{
+            //    case "IN": inv.QuantityOnHand += qtyDelta; break;   // +ve
+            //    case "OUT": inv.QuantityOnHand -= -qtyDelta; break;   // qtyDelta = -ve
+            //    case "RESERVE": inv.ReservedQty += -qtyDelta; break;   // qtyDelta = -ve
+            //    case "RELEASE": inv.ReservedQty -= qtyDelta; break;   // +ve
+            //}
+        }
+
     }
 }
 

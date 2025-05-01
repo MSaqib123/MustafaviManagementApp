@@ -1,5 +1,6 @@
 using MedicineStore.Models;
 using Microsoft.EntityFrameworkCore;
+using MustafaviManagementApp.Models;
 namespace MedicineStore.Data
 {
     public class AppDbContext : DbContext
@@ -20,6 +21,8 @@ namespace MedicineStore.Data
     public DbSet<MedicineStore.Models.Payment> Payments { get; set; }
     public DbSet<MedicineStore.Models.PaymentDetail> PaymentDetails { get; set; }
     public DbSet<MedicineStore.Models.DailySummary> DailySummarys { get; set; }
+    public DbSet<StockLedger> StockLedgers { get; set; }
+
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

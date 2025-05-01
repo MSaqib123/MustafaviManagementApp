@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using MedicineStore.Data;
@@ -6,19 +6,20 @@ using MedicineStore.Models;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using MustafaviManagementApp.Models;
 
 namespace MedicineStore.Controllers
 {
     public class InventorysController : Controller
     {
-        private readonly AppDbContext _context;
-        public InventorysController(AppDbContext context) => _context = context;
+        private readonly AppDbContext _db;
+        public InventorysController(AppDbContext context) => _db = context;
 
         // Populate medicine dropdown
         private void PopulateMedicines()
         {
             ViewBag.Medicines = new SelectList(
-                _context.Medicines
+                _db.Medicines
                         .OrderBy(m => m.MedicineName)
                         .ToList(),
                 "MedicineId",
@@ -29,7 +30,7 @@ namespace MedicineStore.Controllers
         // GET: Inventories
         public async Task<IActionResult> Index()
         {
-            var items = await _context.Inventorys
+            var items = await _db.Inventorys
                 .Include(i => i.Medicine)
                 .ToListAsync();
             return View(items);
@@ -39,7 +40,7 @@ namespace MedicineStore.Controllers
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null) return NotFound();
-            var inventory = await _context.Inventorys
+            var inventory = await _db.Inventorys
                 .Include(i => i.Medicine)
                 .FirstOrDefaultAsync(i => i.InventoryId == id);
             if (inventory == null) return NotFound();
@@ -62,8 +63,16 @@ namespace MedicineStore.Controllers
                 return View(inventory);
 
             inventory.CreatedAt = DateTime.Now;
-            _context.Add(inventory);
-            await _context.SaveChangesAsync();
+            _db.Add(inventory);
+
+            /* 🔸 Ledger: IN */
+            await LedgerEntry(
+                inventory.MedicineId,
+                +inventory.QuantityOnHand,     // پوزیٹیو
+                "IN"
+            );
+
+            await _db.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
@@ -71,7 +80,7 @@ namespace MedicineStore.Controllers
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null) return NotFound();
-            var inventory = await _context.Inventorys.FindAsync(id);
+            var inventory = await _db.Inventorys.FindAsync(id);
             if (inventory == null) return NotFound();
 
             PopulateMedicines();
@@ -90,13 +99,33 @@ namespace MedicineStore.Controllers
 
             try
             {
+                // +ve ⇒ stock increase, -ve ⇒ decrease
+                var dbInv = await _db.Inventorys
+                                  .AsNoTracking()
+                                  .FirstAsync(i => i.InventoryId == id);
+                int delta = inventory.QuantityOnHand - dbInv.QuantityOnHand;
+                // +ve ⇒ stock increase, -ve ⇒ decrease
+
+
                 inventory.UpdatedAt = DateTime.Now;
-                _context.Update(inventory);
-                await _context.SaveChangesAsync();
+                _db.Update(inventory);
+
+                //----- Leader -----
+                if (delta != 0)
+                {
+                    string action = delta > 0 ? "ADJUST_IN" : "ADJUST_OUT";
+                    await LedgerEntry(
+                        inventory.MedicineId,
+                        delta,
+                        action
+                    );
+                }
+
+                await _db.SaveChangesAsync();
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!_context.Inventorys.Any(e => e.InventoryId == id))
+                if (!_db.Inventorys.Any(e => e.InventoryId == id))
                     return NotFound();
                 throw;
             }
@@ -107,7 +136,7 @@ namespace MedicineStore.Controllers
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null) return NotFound();
-            var inventory = await _context.Inventorys
+            var inventory = await _db.Inventorys
                 .Include(i => i.Medicine)
                 .FirstOrDefaultAsync(i => i.InventoryId == id);
             if (inventory == null) return NotFound();
@@ -118,13 +147,45 @@ namespace MedicineStore.Controllers
         [HttpPost, ActionName("Delete"), ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var inventory = await _context.Inventorys.FindAsync(id);
+            var inventory = await _db.Inventorys.FindAsync(id);
             if (inventory != null)
             {
-                _context.Inventorys.Remove(inventory);
-                await _context.SaveChangesAsync();
+                /* 🔸 Ledger: SCRAP_OUT */
+                await LedgerEntry(
+                    inventory.MedicineId,
+                    -inventory.QuantityOnHand, 
+                    "SCRAP_OUT"
+                );
+                /* 🔸 Ledger: SCRAP_OUT */
+
+                _db.Inventorys.Remove(inventory);
+                await _db.SaveChangesAsync();
             }
             return RedirectToAction(nameof(Index));
         }
+
+
+
+        private async Task LedgerEntry(int medicineId,int qtyDelta,string action,int? saleId = null,int? purchaseId = null)
+        {
+            var balance = await _db.Inventorys
+                                   .Where(i => i.MedicineId == medicineId)
+                                   .Select(i => i.QuantityOnHand - i.ReservedQty)
+                                   .FirstAsync();
+            var entry = new StockLedger
+            {
+                MedicineId = medicineId,
+                SaleId = saleId,
+                PurchaseId = purchaseId,
+                ActionType = action,        
+                QtyChange = qtyDelta,     
+                QtyBeforeChange = balance,
+                BalanceAfter = balance + qtyDelta,
+                CreatedAt = DateTime.Now
+            };
+            _db.StockLedgers.Add(entry);
+        }
+
+
     }
 }

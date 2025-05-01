@@ -42,7 +42,7 @@ namespace MedicineStore.Controllers
             if (id == null) return NotFound();
             var detail = await _context.PurchaseDetails
                 .Include(d => d.Purchase)
-                .Include(d => d.Medicine)
+                .Include(d => d.Medicine)   
                 .FirstOrDefaultAsync(d => d.PurchaseDetailId == id);
             if (detail == null) return NotFound();
             return View(detail);

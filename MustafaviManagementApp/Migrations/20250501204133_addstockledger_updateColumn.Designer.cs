@@ -4,6 +4,7 @@ using MedicineStore.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace MustafaviManagementApp.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250501204133_addstockledger_updateColumn")]
+    partial class addstockledger_updateColumn
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -644,6 +647,9 @@ namespace MustafaviManagementApp.Migrations
                         .HasColumnType("int");
 
                     b.Property<int>("QtyChange")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("QtyCurrentlyAdded")
                         .HasColumnType("int");
 
                     b.Property<int?>("SaleId")
