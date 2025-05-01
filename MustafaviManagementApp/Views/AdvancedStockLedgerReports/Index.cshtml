@@ -2,171 +2,219 @@
     ViewData["Title"] = "Advanced Stock Ledger Report";
 }
 
-<!-- ───── CSS / JS CDN ───── -->
+<!-- ==========  CDNs  ========== -->
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
 <link href="https://cdn.datatables.net/1.13.10/css/dataTables.bootstrap5.min.css" rel="stylesheet" />
-
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.10/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.10/js/dataTables.bootstrap5.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+<!-- 🔴  ہر AJAX پر کیش بند -->
+<script> $.ajaxSetup({ cache:false }); </script>
+
 <style>
-    /* رنگ کوڈنگ */
     .qty-pos {
         color: #198754
     }
-    /* + */
+
     .qty-neg {
         color: #dc3545
     }
-    /* – */
+
+    tfoot tr th {
+        font-weight: 600
+    }
 </style>
 
 <h1 class="mb-4">Stock Ledger – Advanced Report</h1>
 
-<!-- ───────────── Filter Form ───────────── -->
-<form id="filterForm" class="row g-2 align-items-end mb-3" method="get">
-    <div class="col-md-2">
+<!-- ==========  Filter  ========== -->
+<form id="filterForm" class="row row-cols-auto g-2 align-items-end mb-3" method="get">
+
+    <div>
         <label class="form-label fw-bold">Date From</label>
-        <input name="dateFrom" type="date" class="form-control" />
+        <input type="date" name="dateFrom" class="form-control" />
     </div>
-    <div class="col-md-2">
+
+    <div>
         <label class="form-label fw-bold">Date To</label>
-        <input name="dateTo" type="date" class="form-control" />
+        <input type="date" name="dateTo" class="form-control" />
     </div>
-    <div class="col-md-3">
+
+    <div>
         <label class="form-label fw-bold">Medicine</label>
         @Html.DropDownList("medicineId", (SelectList)ViewBag.Medicines, "ALL",
                  new { @class = "form-select" })
     </div>
-    <div class="col-md-2">
+
+    <div>
         <label class="form-label fw-bold">Action</label>
         @Html.DropDownList("actionType", (SelectList)ViewBag.ActionTypes, null,
                  new { @class = "form-select" })
     </div>
-    <div class="col-md-auto">
-        <button class="btn btn-primary w-100">Filter</button>
+
+    <div>
+        <label class="form-label fw-bold">Mode</label><br />
+        <div class="btn-group" role="group">
+            <input type="radio" class="btn-check" name="mode" id="modeSales" value="Sales" checked>
+            <label class="btn btn-outline-primary" for="modeSales">Sales</label>
+            <input type="radio" class="btn-check" name="mode" id="modePurchase" value="Purchase">
+            <label class="btn btn-outline-primary" for="modePurchase">Purchase</label>
+        </div>
     </div>
-    <div class="col-md-auto">
-        <a id="btnExcel" class="btn btn-success w-100" target="_blank">Excel</a>
-    </div>
-    <div class="col-md-auto">
-        <a id="btnCsv" class="btn btn-secondary w-100" target="_blank">CSV</a>
-    </div>
+
+    <div><button class="btn btn-primary">Filter</button></div>
+    <div><a id="btnExcel" class="btn btn-success" target="_blank">Excel</a></div>
+    <div><a id="btnCsv" class="btn btn-secondary" target="_blank">CSV</a></div>
 </form>
 
-<!-- ───────────── Totals ───────────── -->
+<!-- Badges -->
 <div class="mb-3">
-    <span class="badge bg-success">IN: <span id="sumIn">0</span></span>
-    <span class="badge bg-danger">OUT: <span id="sumOut">0</span></span>
-    <span class="badge bg-warning text-dark">RESERVE: <span id="sumRes">0</span></span>
-    <span class="badge bg-info text-dark">RELEASE: <span id="sumRel">0</span></span>
+    <span class="badge bg-success">IN Qty:  <span id="sumIn">0</span></span>
+    <span class="badge bg-danger">OUT Qty: <span id="sumOut">0</span></span>
+    <span class="badge bg-secondary">Net PKR: <span id="sumNet">0</span></span>
 </div>
 
-<!-- ───────────── Chart ───────────── -->
-<canvas id="ioChart" height="120" class="mb-4 border rounded p-2"></canvas>
+<!-- Chart -->
+<canvas id="ioChart" height="150" class="border rounded p-2 mb-4"></canvas>
 
-<!-- ───────────── DataTable ───────────── -->
+<!-- DataTable -->
 <table id="ledgerTable" class="table table-striped table-bordered w-100">
     <thead class="table-light">
         <tr>
-            <th>Date&nbsp;Time</th>
+            <th>Date</th>
             <th>Medicine</th>
             <th>Action</th>
+            <th class="text-end">Qty&nbsp;Before</th>
             <th class="text-end">Δ&nbsp;Qty</th>
-            <th class="text-end">Balance</th>
+            <th class="text-end">Qty&nbsp;After</th>
+            <th class="text-end">Val&nbsp;Before</th>
+            <th class="text-end">Δ&nbsp;Amount</th>
+            <th class="text-end">Val&nbsp;After</th>
             <th>SaleId</th>
             <th>PurchaseId</th>
         </tr>
     </thead>
+    <tfoot><tr><th colspan="11">Item-wise Net PKR نیچے دیکھیں</th></tr></tfoot>
 </table>
 
-<!-- ───────────── JS Logic ───────────── -->
+<div id="itemTotals" class="mt-3"></div>
+
+<!-- ==========  JS  ========== -->
 <script>
     $(function(){
 
-        /* utility: convert form → flat object */
-        const formObj = () =>
-            $('#filterForm').serializeArray()
-              .reduce((o,i)=>{o[i.name]=i.value;return o;}, {});
+      const money = v => v.toLocaleString('en-PK',{maximumFractionDigits:2});
+      const form  = () => $('#filterForm').serializeArray()
+                         .reduce((o,i)=>(o[i.name]=i.value,o),{});
+      let currentMode = 'Sales';
 
-        /* ===== DataTable ===== */
-        const table = $('#ledgerTable').DataTable({
-            serverSide:true, processing:true,
-            lengthMenu:[25,50,100],
-            ajax:{
-                url : '@Url.Action("DataTable", "AdvancedStockLedgerReports")',
-                type: 'GET',                 // CSRF free
-                data: function(d){ return $.extend({}, d, formObj()); }
-            },
-            columns:[
-              {data:'date'},
-              {data:'medicine'},
-              {data:'action'},
-              {data:'qtyChange',
-                render:d=> d<0
-                    ? `<span class="qty-neg">${d}</span>`
-                    : `<span class="qty-pos">+${d}</span>`,
-                className:'text-end'},
-              {data:'balance',className:'text-end'},
-              {data:'saleId'},
-              {data:'purchaseId'}
-            ],
-            order:[[0,'desc']]
+      /* === DataTable === */
+      const table = $('#ledgerTable').DataTable({
+        serverSide:true, processing:true, lengthMenu:[25,50,100],
+        ajax:{
+          url:'@Url.Action("DataTable", "AdvancedStockLedgerReports")',
+          type:'GET',
+          data:d=>({...d,...form()})
+        },
+        columns:[
+          {data:'date'},
+          {data:'medicine'},
+          {data:'action'},
+          {data:'qtyBefore',className:'text-end'},
+          {data:'qtyChange',
+            render:d=>d<0?`<span class="qty-neg">${d}</span>`
+                         :`<span class="qty-pos">+${d}</span>`,
+            className:'text-end' },
+          {data:'qtyAfter',className:'text-end'},
+          {data:'valBefore',render:money,className:'text-end'},
+          {data:'valChange',
+            render:d=>money(currentMode==='Sales'?-d:d),
+            className:'text-end'},
+          {data:'valAfter',render:money,className:'text-end'},
+          {data:'saleId'},
+          {data:'purchaseId'}
+        ],
+        order:[[0,'desc']]
+      });
+
+      /* === Item-wise totals === */
+      $('#ledgerTable').on('xhr.dt',(_,__,json)=>{
+         const m = new Map();
+         json.data.forEach(r=>{
+            const adj = currentMode==='Sales' ? -r.valChange : r.valChange;
+            m.set(r.medicine, (m.get(r.medicine)||0) + adj);
+         });
+         let h='<h5>Net Amount by Item (PKR)</h5><ul class="list-group">';
+         m.forEach((v,k)=>h+=`<li class="list-group-item d-flex justify-content-between">
+                               <span>${k}</span><span>${money(v)}</span></li>`);
+         $('#itemTotals').html(h+'</ul>');
+      });
+
+      /* === Summary badges === */
+      function loadSummary(){
+        $.get('@Url.Action("Summary", "AdvancedStockLedgerReports")',form(),res=>{
+           const f=k=>res.rows.find(x=>x.action===k)||{qty:0,amount:0};
+           $('#sumIn').text( f('IN').qty + f('ADJUST_IN').qty );
+           $('#sumOut').text(-(f('OUT').qty+f('ADJUST_OUT').qty+f('SCRAP_OUT').qty));
+           const net = currentMode==='Sales'? -res.net : res.net;
+           $('#sumNet').text(money(net));
         });
+      }
 
-        /* ===== Summary ===== */
-        function loadSummary(){
-            $.get('@Url.Action("Summary", "AdvancedStockLedgerReports")',
-                  formObj(), list=>{
-                const find=k=>list.find(x=>x.action===k)?.qty||0;
-                $('#sumIn').text(find('IN')+find('ADJUST_IN'));
-                $('#sumOut').text(-(find('OUT')+find('ADJUST_OUT')+find('SCRAP_OUT')));
-                $('#sumRes').text(-find('RESERVE'));
-                $('#sumRel').text(find('RELEASE'));
-            });
-        }
+      /* === Chart === */
+      const chart = new Chart(document.getElementById('ioChart'),{
+        type:'bar',
+        data:{labels:[],datasets:[
+          {label:'IN Qty', backgroundColor:'#198754',data:[]},
+          {label:'OUT Qty',backgroundColor:'#dc3545',data:[]},
+          {label:'IN PKR', type:'line',borderWidth:2,yAxisID:'y1',data:[]},
+          {label:'OUT PKR',type:'line',borderWidth:2,yAxisID:'y1',data:[]}
+        ]},
+        options:{responsive:true,scales:{
+          y:{beginAtZero:true},
+          y1:{beginAtZero:true,position:'right',grid:{drawOnChartArea:false}}
+        }}
+      });
 
-        /* ===== Chart ===== */
-        const chart = new Chart(document.getElementById('ioChart'),{
-            type:'bar',
-            data:{labels:[],datasets:[
-              {label:'IN',backgroundColor:'#198754',data:[]},
-              {label:'OUT',backgroundColor:'#dc3545',data:[]}
-            ]},
-            options:{responsive:true}
+      function loadChart(){
+        $.get('@Url.Action("Chart", "AdvancedStockLedgerReports")',form(),d=>{
+
+          /* clear old */
+          chart.data.labels.length = 0;
+          chart.data.datasets.forEach(ds=>ds.data.length=0);
+
+          chart.data.labels.push(...d.labels);
+          chart.data.datasets[0].data.push(...d.inData);
+          chart.data.datasets[1].data.push(...d.outData);
+
+          const inAmt  = currentMode==='Sales' ? d.outAmount.map(n=>-n) : d.inAmount;
+          const outAmt = currentMode==='Sales' ? d.inAmount.map(n=>-n) : d.outAmount;
+          chart.data.datasets[2].data.push(...inAmt);
+          chart.data.datasets[3].data.push(...outAmt);
+
+          chart.update();
         });
-        function loadChart(){
-            $.get('@Url.Action("Chart", "AdvancedStockLedgerReports")',
-                  formObj(), d=>{
-                chart.data.labels = d.labels;
-                chart.data.datasets[0].data = d.inData;
-                chart.data.datasets[1].data = d.outData;
-                chart.update();
-            });
-        }
+      }
 
-        /* ===== Export links ===== */
-        function refreshLinks(){
-            const qs = $.param(formObj());
-            $('#btnExcel').attr('href',
-                '@Url.Action("ExportExcel", "AdvancedStockLedgerReports")?'+qs);
-            $('#btnCsv').attr('href',
-                '@Url.Action("ExportCsv", "AdvancedStockLedgerReports")?'+qs);
-        }
+      /* === Export links === */
+      const refreshLinks = ()=>{
+        const qs = $.param(form());
+        $('#btnExcel').attr('href','@Url.Action("ExportExcel", "AdvancedStockLedgerReports")?'+qs);
+        $('#btnCsv') .attr('href','@Url.Action("ExportCsv", "AdvancedStockLedgerReports")?'+qs);
+      };
 
-        /* ===== Filter submit ===== */
-        $('#filterForm').on('submit',function(e){
-            e.preventDefault();
-            table.ajax.reload();
-            loadSummary();
-            loadChart();
-            refreshLinks();
-        });
-
-        /* initial load */
+      /* === Filter submit === */
+      $('#filterForm').on('submit',e=>{
+        e.preventDefault();
+        currentMode = $('input[name=mode]:checked').val();
+        table.ajax.reload();
         loadSummary(); loadChart(); refreshLinks();
+      });
+
+      /* === initial load === */
+      loadSummary(); loadChart(); refreshLinks();
     });
 </script>
