@@ -7,6 +7,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="wwwroot\lib\material-ui\**" />
+    <Content Remove="wwwroot\lib\material-ui\**" />
+    <EmbeddedResource Remove="wwwroot\lib\material-ui\**" />
+    <None Remove="wwwroot\lib\material-ui\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="ClosedXML" Version="0.104.2" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.15" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.15" />
