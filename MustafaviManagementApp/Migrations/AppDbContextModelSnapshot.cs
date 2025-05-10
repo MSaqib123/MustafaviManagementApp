@@ -189,6 +189,9 @@ namespace MustafaviManagementApp.Migrations
                     b.Property<string>("DosageForm")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Image")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("MedicineName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -211,6 +214,9 @@ namespace MustafaviManagementApp.Migrations
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("UrduName")
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("MedicineId");
 

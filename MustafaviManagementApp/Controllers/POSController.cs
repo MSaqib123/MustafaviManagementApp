@@ -281,7 +281,9 @@ namespace MustafaviManagementApp.Controllers
                   m.MedicineId,
                   m.MedicineName,
                   m.CategoryId,
-                  UnitPrice = m.SingleUnitPrice ?? m.CotanUnitPrice
+                  UnitPrice = (m.SingleUnitPrice ?? m.CotanUnitPrice) ?? 0m, // ← never null
+                  m.Image,
+                  m.UrduName,
                 })
                 .ToListAsync();
 

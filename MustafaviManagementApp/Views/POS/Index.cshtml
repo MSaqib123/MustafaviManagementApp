@@ -376,10 +376,16 @@
         const PRODUCTS   = @Html.Raw(medsJson);
         const INVENTORY  = @Html.Raw(invJson);
         const CATEGORIES = @Html.Raw(catsJson);
+        const PLACEHOLDER = '/img/no-image.jpg';   // put one image in wwwroot/img/
+
 
         // ─── HELPERS ──────────────────────────────────────────
         const qs = s => document.querySelector(s);
-        const money = n => n.toFixed(2);
+                // before
+        // const money = n => n.toFixed(2);
+
+        const money = n => Number(n ?? 0).toFixed(2);   // null/undefined ⇒ 0.00
+
         const stockMap = Object.fromEntries(INVENTORY.map(i=>[i.MedicineId,i.QuantityOnHand]));
         const initialStockMap = { ...stockMap };
 
@@ -579,18 +585,26 @@
             );
           }
 
+
+
+
+          
+
+
           renderProducts(list){
             const wrap = qs('#gridWrap');
             wrap.innerHTML = '';
             list.forEach(p=>{
               const s = stockMap[p.MedicineId]||0,
                     out = s===0,
-                    clr = s ? (s<5?'warning':'success') : 'danger';
+                    clr = s ? (s<5?'warning':'success') : 'danger',
+                    img = p.Image || PLACEHOLDER;
+                console.log(p.Image)
               wrap.insertAdjacentHTML('beforeend',`
                 <div class="card prod-card position-relative ${out?'red':''}" data-id="${p.MedicineId}">
                   <span class="badge bg-${clr} stock-badge">${s}</span>
                   <div class="card-body d-flex flex-column p-2">
-                    <img src="https://t4.ftcdn.net/jpg/02/76/80/31/360_F_276803150_yUZGcTLjJErZdmLw0GhDzARQY91S6yrv.jpg">
+                    <img src="${img}">
                     <div class="text-truncate small">${p.MedicineName}</div>
                     <div class="fw-bold mb-2">${money(p.UnitPrice)} PKR</div>
                     <button class="btn btn-sm btn-outline-primary w-100 add-btn" ${out?'disabled':''} type="button">Add</button>

@@ -166,25 +166,35 @@ namespace MedicineStore.Controllers
 
 
 
-        private async Task LedgerEntry(int medicineId,int qtyDelta,string action,int? saleId = null,int? purchaseId = null)
+        private async Task LedgerEntry(int medicineId, int qtyDelta, string action, int? saleId = null, int? purchaseId = null)
         {
-            var balance = await _db.Inventorys
-                                   .Where(i => i.MedicineId == medicineId)
-                                   .Select(i => i.QuantityOnHand - i.ReservedQty)
-                                   .FirstAsync();
+            var inventory = await _db.Inventorys
+                                     .Where(i => i.MedicineId == medicineId)
+                                     .Select(i => new { i.QuantityOnHand, i.ReservedQty })
+                                     .FirstOrDefaultAsync();
+
+            int qtyBeforeChange = 0; // Default to 0 if no inventory record exists
+
+            if (inventory != null)
+            {
+                qtyBeforeChange = inventory.QuantityOnHand - inventory.ReservedQty;
+            }
+
             var entry = new StockLedger
             {
                 MedicineId = medicineId,
                 SaleId = saleId,
                 PurchaseId = purchaseId,
-                ActionType = action,        
-                QtyChange = qtyDelta,     
-                QtyBeforeChange = balance,
-                BalanceAfter = balance + qtyDelta,
+                ActionType = action,
+                QtyChange = qtyDelta,
+                QtyBeforeChange = qtyBeforeChange,
+                BalanceAfter = qtyBeforeChange + qtyDelta,
                 CreatedAt = DateTime.Now
             };
+
             _db.StockLedgers.Add(entry);
         }
+
 
 
     }

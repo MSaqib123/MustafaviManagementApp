@@ -1,6 +1,7 @@
-using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace MedicineStore.Models
 {
@@ -24,6 +25,10 @@ namespace MedicineStore.Models
         public decimal? SingleUnitPrice { get; set; }
         public decimal? CotanUnitPrice { get; set; }
         public int? CotanUnitSize { get; set; }
+
+        public string? Image { get; set; }
+        public string? UrduName { get; set; }
+
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
 
@@ -37,6 +42,11 @@ namespace MedicineStore.Models
         public ICollection<PurchaseDetail> PurchaseDetails { get; set; }
         [ValidateNever]
         public ICollection<SaleDetail> SaleDetails { get; set; }
+
+
+
+        // ───────────────– helper (not mapped) ───────────────
+        [NotMapped] public IFormFile? ImageFile { get; set; }   // bound by the <input type="file">
     }
 
 }

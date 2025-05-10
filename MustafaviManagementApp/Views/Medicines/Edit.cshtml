@@ -5,6 +5,111 @@
 
 <h2>Edit Medicine</h2>
 
+<form asp-action="Edit"
+      method="post"
+      enctype="multipart/form-data">
+    <div class="row">
+        <input asp-for="MedicineId" hidden/>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label asp-for="MedicineName"></label>
+                <input asp-for="MedicineName" class="form-control" />
+                <span asp-validation-for="MedicineName" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="CategoryId">Category</label>
+                <select asp-for="CategoryId" class="form-control"
+                        asp-items="@(ViewBag.Categories as SelectList)">
+                    <option value="">-- Select --</option>
+                </select>
+                <span asp-validation-for="CategoryId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="StoreId">Store</label>
+                <select asp-for="StoreId" class="form-control"
+                        asp-items="@(ViewBag.Stores as SelectList)">
+                    <option value="">-- Select --</option>
+                </select>
+                <span asp-validation-for="StoreId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Brand"></label>
+                <input asp-for="Brand" class="form-control" />
+            </div>
+            <div class="form-group">
+                <label asp-for="DosageForm"></label>
+                <input asp-for="DosageForm" class="form-control" />
+            </div>
+            <div class="form-group">
+                <label asp-for="Strength"></label>
+                <input asp-for="Strength" class="form-control" />
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label asp-for="ReorderLevel"></label>
+                <input asp-for="ReorderLevel" class="form-control" />
+            </div>
+            <div class="form-group">
+                <label asp-for="PriceType"></label>
+                <select asp-for="PriceType" class="form-control">
+                    <option value="SINGLE">Single</option>
+                    <option value="COTAN">Cotan</option>
+                    <option value="BOTH">Both</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label asp-for="SingleUnitPrice"></label>
+                <input asp-for="SingleUnitPrice" class="form-control" />
+            </div>
+            <div class="form-group">
+                <label asp-for="CotanUnitPrice"></label>
+                <input asp-for="CotanUnitPrice" class="form-control" />
+            </div>
+            <div class="form-group">
+                <label asp-for="CotanUnitSize"></label>
+                <input asp-for="CotanUnitSize" class="form-control" />
+            </div>
+            <!-- Urdu Name -->
+            <div class="form-group">
+                <label asp-for="UrduName">Urdu Name</label>
+                <input asp-for="UrduName" class="form-control" />
+            </div>
+
+            <!-- Image -->
+            <div class="form-group">
+                <label asp-for="ImageFile">Picture</label>
+                <input asp-for="ImageFile" class="form-control-file" type="file" />
+                <span asp-validation-for="ImageFile" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                @if (!string.IsNullOrEmpty(Model.Image))
+                {
+                    <img src="~/@Model.Image" style="max-height:140px" class="mb-2" />
+                }
+            </div>
+        </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Update</button>
+    <a asp-action="Index" class="btn btn-link">Cancel</a>
+</form>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
+
+
+@* @model MedicineStore.Models.Medicine
+@{
+    ViewData["Title"] = "Edit Medicine";
+}
+
+<h2>Edit Medicine</h2>
+
 <form asp-action="Edit" method="post">
     <input type="hidden" asp-for="MedicineId" />
     <div class="row">
@@ -80,3 +185,4 @@
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
 }
+ *@
