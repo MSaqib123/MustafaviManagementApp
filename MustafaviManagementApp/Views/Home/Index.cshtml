@@ -3,6 +3,232 @@
 @{
     ViewData["Title"] = "Dashboard";
 
+    /* JSON blobs */
+    var lowStockJson = JsonConvert.SerializeObject(Model.LowStockItems);
+    var dailySalesJson = JsonConvert.SerializeObject(Model.DailySales);
+    var weeklySalesJson = JsonConvert.SerializeObject(Model.WeeklySales);
+    var dailyPurchJson = JsonConvert.SerializeObject(Model.DailyPurchases);
+    var weeklyPurchJson = JsonConvert.SerializeObject(Model.WeeklyPurchases);
+
+    var totalEver = Model.TotalStock;
+    var onHand = Model.RemainingStock;
+    var lowSkuCount = Model.LowStockItems.Count;
+    var totalRevenue = Model.Revenue;
+    string curPeriod = ViewBag.Period ?? "daily";
+}
+
+<!-- MDBootstrap & FontAwesome -->
+<link href="~/lib/font-awesome/all.css" rel="stylesheet" />
+<script src="~/lib/font-awesome/all.js"></script>
+
+<style>
+    .stat-card {
+        border-radius: .75rem;
+        box-shadow: 0 4px 16px rgba(0,0,0,.1);
+        transition: transform .2s
+    }
+
+        .stat-card:hover {
+            transform: translateY(-4px)
+        }
+
+    .chart-card {
+        border-radius: .75rem;
+        box-shadow: 0 4px 16px rgba(0,0,0,.05);
+        padding: 1rem;
+        background: #fff
+    }
+</style>
+
+<div class="container py-4">
+
+    <!-- selector -->
+    <div class="d-flex justify-content-end mb-2">
+        <select id="periodSel" class="form-select w-auto"
+                onchange="location.href='@Url.Action("Index","Home")?period=' + this.value">
+            <option value="daily" selected="@(curPeriod=="daily")">Daily</option>
+            <option value="weekly" selected="@(curPeriod=="weekly")">Weekly</option>
+            <option value="monthly" selected="@(curPeriod=="monthly")">Monthly</option>
+            <option value="yearly" selected="@(curPeriod=="yearly")">Yearly</option>
+            <option value="last5" selected="@(curPeriod=="last5")">Last 5 Years</option>
+        </select>
+    </div>
+
+    <h2 class="fw-bold text-center mb-4">📊 Mustafavi Management System</h2>
+
+    <!-- ░░ STAT CARDS ░░ -->
+    <div class="row g-4 mb-5">
+        <div class="col-6 col-md-3">
+            <div class="stat-card bg-primary text-white text-center py-3">
+                <i class="fas fa-boxes fa-2x mb-2"></i>
+                <h6>Total Ever Added</h6><h3>@totalEver</h3>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card bg-success text-white text-center py-3">
+                <i class="fas fa-warehouse fa-2x mb-2"></i>
+                <h6>Currently On-hand</h6><h3>@onHand</h3>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card bg-warning text-dark text-center py-3">
+                <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+                <h6>Low-stock SKUs</h6><h3>@lowSkuCount</h3>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card bg-info text-white text-center py-3">
+                <i class="fas fa-dollar-sign fa-2x mb-2"></i>
+                <h6>Total Revenue</h6><h3>@totalRevenue.ToString("N0")</h3>
+            </div>
+        </div>
+    </div>
+
+    <!-- ░░ CHART GRID ░░ -->
+    <div class="row g-4">
+
+        <!-- pie -->
+        <div class="col-lg-6">
+            <div class="chart-card h-100">
+                <h5 class="mb-3">Total Stock vs Remaining</h5>
+                <div id="stock-pie" style="height:350px"></div>
+            </div>
+        </div>
+
+        <!-- low-stock -->
+        <div class="col-lg-6">
+            <div class="chart-card h-100">
+                <h5 class="mb-3">Low-stock Items &lt;5</h5>
+                <div id="low-stock-bar" style="height:350px"></div>
+            </div>
+        </div>
+
+        <!-- Daily Sales (render only if data exists) -->
+        @if (Model.DailySales.Any())
+        {
+            <div class="col-lg-6">
+                <div class="chart-card h-100">
+                    <h5 class="mb-3">Sales (@curPeriod switch)</h5>
+                    <div id="daily-sales" style="height:350px"></div>
+                </div>
+            </div>
+        }
+
+        <!-- Weekly Sales -->
+        @if (Model.WeeklySales.Any())
+        {
+            <div class="col-lg-6">
+                <div class="chart-card h-100">
+                    <h5 class="mb-3">Weekly Sales</h5>
+                    <div id="weekly-sales" style="height:350px"></div>
+                </div>
+            </div>
+        }
+
+        <!-- Daily Purchases -->
+        @if (Model.DailyPurchases.Any())
+        {
+            <div class="col-lg-6">
+                <div class="chart-card h-100">
+                    <h5 class="mb-3">Purchases (@curPeriod switch)</h5>
+                    <div id="daily-purchases" style="height:350px"></div>
+                </div>
+            </div>
+        }
+
+        <!-- Weekly Purchases -->
+        @if (Model.WeeklyPurchases.Any())
+        {
+            <div class="col-lg-6">
+                <div class="chart-card h-100">
+                    <h5 class="mb-3">Weekly Purchases</h5>
+                    <div id="weekly-purchases" style="height:350px"></div>
+                </div>
+            </div>
+        }
+
+        <!-- value vs revenue -->
+        <div class="col-12">
+            <div class="chart-card">
+                <h5 class="mb-3">Inventory Value vs Revenue</h5>
+                <div id="values-column" style="height:400px"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Highcharts -->
+<script src="~/lib/highcharts/highcharts.js"></script>
+
+@section Scripts {
+    <script>
+        /* ░░ server data ░░ */
+        const lowStock        = @Html.Raw(lowStockJson);
+        const dailySales      = @Html.Raw(dailySalesJson);
+        const weeklySales     = @Html.Raw(weeklySalesJson);
+        const dailyPurchases  = @Html.Raw(dailyPurchJson);
+        const weeklyPurchases = @Html.Raw(weeklyPurchJson);
+        const totalStock      = @Model.TotalStock;
+        const remainingStock  = @Model.RemainingStock;
+        const invVals         = { total:@Model.TotalInventoryValue,
+                                  remaining:@Model.RemainingInventoryValue,
+                                  revenue:@Model.Revenue };
+
+        const cat  = a=>a.map(p=>p.Period);
+        const data = a=>a.map(p=>p.Value);
+
+        /* 1) Pie */
+        Highcharts.chart('stock-pie',{
+          chart:{type:'pie'},title:{text:''},
+          series:[{name:'Units',data:[
+              {name:'Total added',y:totalStock},
+              {name:'On-hand',y:remainingStock}] }],
+          credits:{enabled:false}
+        });
+
+        /* 2) Low-stock bar */
+        Highcharts.chart('low-stock-bar',{
+          chart:{type:'column'},title:{text:''},
+          xAxis:{categories:lowStock.map(i=>i.MedicineName)},
+          yAxis:{title:{text:'Units'}},
+          series:[{name:'Qty',data:lowStock.map(i=>i.Quantity)}],
+          credits:{enabled:false}
+        });
+
+        /* helper */
+        function makeLine(div,title,series){
+          if(!series.length) return;
+          Highcharts.chart(div,{
+            chart:{type:'line'},title:{text:''},
+            xAxis:{categories:cat(series)},yAxis:{title:{text:'PKR'}},
+            series:[{name:title,data:data(series)}],
+            credits:{enabled:false}
+          });
+        }
+
+        /* 3-6) Time-series lines */
+        makeLine('daily-sales','Sales',dailySales);
+        makeLine('weekly-sales','Sales',weeklySales);
+        makeLine('daily-purchases','Purchases',dailyPurchases);
+        makeLine('weekly-purchases','Purchases',weeklyPurchases);
+
+        /* 7) Column */
+        Highcharts.chart('values-column',{
+          chart:{type:'column'},title:{text:''},
+          xAxis:{categories:['Total Purchase Cost','Remaining Inventory','Revenue']},
+          yAxis:{title:{text:'PKR'}},
+          series:[{name:'Amount',data:[invVals.total,invVals.remaining,invVals.revenue]}],
+          credits:{enabled:false}
+        });
+    </script>
+}
+
+
+@* @model MustafaviManagementApp.ViewModels.DashboardViewModel
+@using Newtonsoft.Json
+@{
+    ViewData["Title"] = "Dashboard";
+
     /* ───- JSON blobs for charts ─── */
     var lowStockJson = JsonConvert.SerializeObject(Model.LowStockItems);
     var dailySalesJson = JsonConvert.SerializeObject(Model.DailySales);
@@ -18,7 +244,6 @@
 }
 
 <!-- MDBootstrap + FontAwesome -->
-@* <script src="https://kit.fontawesome.com/0953e85d76.js" crossorigin="anonymous"></script> *@
 <link href="~/lib/font-awesome/all.css" rel="stylesheet" />
 <script src="~/lib/font-awesome/all.js"></script>
 
@@ -183,3 +408,4 @@
         });
     </script>
 }
+ *@
