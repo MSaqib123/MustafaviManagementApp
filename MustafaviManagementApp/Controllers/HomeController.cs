@@ -25,7 +25,6 @@ namespace MustafaviManagementApp.Controllers
 
 
 
-        /* ──────────────────────────────── DASHBOARD ─────────────────────────────── */
         /* ─────────────────────────────── DASHBOARD ───────────────────────────── */
         public async Task<IActionResult> Index(string period = "daily")
         {
@@ -36,8 +35,11 @@ namespace MustafaviManagementApp.Controllers
             var cal = CultureInfo.CurrentCulture.Calendar;
 
             /* ░░ STOCK NUMBERS ░░ */
-            var totalStockEver = await _db.StockLedgers.Where(l => l.QtyChange > 0)
-                                 .SumAsync(l => (int?)l.QtyChange) ?? 0;
+            var inbound = new[] { "IN", "PURCHASE_IN", "ADJUST_IN", "RETURN_IN" };
+
+            var totalStockEver = await _db.StockLedgers
+                .Where(l => inbound.Contains(l.ActionType))   // <-- include ADJUST_IN
+                .SumAsync(l => (int?)l.QtyChange) ?? 0;
 
             var latestBalances = await _db.StockLedgers
                 .GroupBy(l => l.MedicineId)

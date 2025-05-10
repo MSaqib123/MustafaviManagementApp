@@ -211,30 +211,52 @@ namespace MustafaviManagementApp.Controllers
         [HttpPost]
         public async Task<IActionResult> DeleteHold(int id)
         {
-            var sale = await _db.Sales
-                .Include(s => s.SaleDetails)
-                .FirstOrDefaultAsync(s => s.SaleId == id && s.IsHeld);
-            if (sale == null) return NotFound();
+            await using var tx = await _db.Database.BeginTransactionAsync();
 
-            foreach (var d in sale.SaleDetails)
+            try
             {
-                var inv = await _db.Inventorys.FirstAsync(i => i.MedicineId == d.MedicineId);
-                inv.ReservedQty -= d.Quantity;
+                var sale = await _db.Sales
+                    .Include(s => s.SaleDetails)
+                    .FirstOrDefaultAsync(s => s.SaleId == id && s.IsHeld);
 
+                if (sale == null) return NotFound();
 
-                /* 2️⃣ لیجر میں RELEASE انٹری (پلس Qty) */
-                await LedgerEntry(
-                    d.MedicineId,
-                    +d.Quantity,       // +ve because stock became available
-                    "RELEASE",
-                    saleId: sale.SaleId
-                );
+                /* 1️⃣  reverse reserved stock + new RELEASE rows */
+                foreach (var d in sale.SaleDetails)
+                {
+                    var inv = await _db.Inventorys
+                                       .FirstAsync(i => i.MedicineId == d.MedicineId);
+
+                    inv.ReservedQty -= d.Quantity;
+
+                    await LedgerEntry(d.MedicineId, +d.Quantity, "RELEASE", saleId: null);
+                }
+
+                /* 2️⃣  detach old RESERVE ledger rows */
+                var oldLedgers = await _db.StockLedgers
+                    .Where(l => l.SaleId == sale.SaleId)
+                    .ToListAsync();
+
+                foreach (var l in oldLedgers)
+                    l.SaleId = null;                           // ← break FK
+
+                /* 3️⃣  delete sale + its details */
+                _db.SaleDetails.RemoveRange(sale.SaleDetails);
+                _db.Sales.Remove(sale);
+
+                await _db.SaveChangesAsync();
+                await tx.CommitAsync();
+                return Ok();
             }
-            _db.SaleDetails.RemoveRange(sale.SaleDetails);
-            _db.Sales.Remove(sale);
-            await _db.SaveChangesAsync();
-            return Ok();
+            catch (Exception ex)
+            {
+                await tx.RollbackAsync();
+                return Problem(ex.InnerException?.Message ?? ex.Message);
+            }
         }
+
+
+
 
         // ─── JSON FOR UI ───
         [HttpGet]
