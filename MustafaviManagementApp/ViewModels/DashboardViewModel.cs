@@ -7,16 +7,19 @@ namespace MustafaviManagementApp.ViewModels
     {
         public decimal TotalStock { get; set; }
         public decimal RemainingStock { get; set; }
+        public decimal TotalInventoryValue { get; set; }
+        public decimal RemainingInventoryValue { get; set; }
+        public decimal Revenue { get; set; }
+
         /* lists */
         public IList<StockLevelDto> LowStockItems { get; set; } = new List<StockLevelDto>();
+        public IList<StockLevelDto> OutOfStockItems { get; set; } = new List<StockLevelDto>();
+
         public IList<TimeSeriesPoint> DailySales { get; set; } = new List<TimeSeriesPoint>();
         public IList<TimeSeriesPoint> WeeklySales { get; set; } = new List<TimeSeriesPoint>();
         public IList<TimeSeriesPoint> DailyPurchases { get; set; } = new List<TimeSeriesPoint>();
         public IList<TimeSeriesPoint> WeeklyPurchases { get; set; } = new List<TimeSeriesPoint>();
 
-        public decimal TotalInventoryValue { get; set; }
-        public decimal RemainingInventoryValue { get; set; }
-        public decimal Revenue { get; set; }
     }
 
     public class StockLevelDto

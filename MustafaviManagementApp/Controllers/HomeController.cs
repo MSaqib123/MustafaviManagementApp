@@ -26,18 +26,19 @@ namespace MustafaviManagementApp.Controllers
 
 
         /* ──────────────────────────────── DASHBOARD ─────────────────────────────── */
+        /* ─────────────────────────────── DASHBOARD ───────────────────────────── */
         public async Task<IActionResult> Index(string period = "daily")
         {
-            /* ░░ 0.  Pass current period to View ░░ */
             period = (period ?? "daily").ToLowerInvariant();
             ViewBag.Period = period;
 
             var today = DateTime.Today;
             var cal = CultureInfo.CurrentCulture.Calendar;
 
-            /* ░░ 1.  Stock numbers (unchanged) ░░ */
+            /* ░░ STOCK NUMBERS ░░ */
             var totalStockEver = await _db.StockLedgers.Where(l => l.QtyChange > 0)
-                                     .SumAsync(l => (int?)l.QtyChange) ?? 0;
+                                 .SumAsync(l => (int?)l.QtyChange) ?? 0;
+
             var latestBalances = await _db.StockLedgers
                 .GroupBy(l => l.MedicineId)
                 .Select(g => g.OrderByDescending(l => l.StockLedgerId).First())
@@ -46,7 +47,7 @@ namespace MustafaviManagementApp.Controllers
             var remainingStock = latestBalances.Sum(l => l.BalanceAfter);
 
             var lowStockItems = latestBalances
-                .Where(l => l.BalanceAfter < 5)
+                .Where(l => l.BalanceAfter < 5 && l.BalanceAfter > 0)
                 .Join(_db.Medicines,
                       ledg => ledg.MedicineId,
                       med => med.MedicineId,
@@ -55,112 +56,118 @@ namespace MustafaviManagementApp.Controllers
                           MedicineName = med.MedicineName,
                           Quantity = ledg.BalanceAfter
                       })
-                .OrderBy(x => x.Quantity).ToList();
+                .OrderBy(x => x.Quantity)
+                .ToList();
 
-            /* ░░ 2.  Helper lambdas ░░ */
+            /* 🆕 OUT-OF-STOCK LIST */
+            var outOfStockItems = latestBalances
+                .Where(l => l.BalanceAfter == 0)
+                .Join(_db.Medicines,
+                      ledg => ledg.MedicineId,
+                      med => med.MedicineId,
+                      (ledg, med) => new StockLevelDto
+                      {
+                          MedicineName = med.MedicineName,
+                          Quantity = 0
+                      })
+                .OrderBy(x => x.MedicineName)
+                .ToList();
+
+            /* ░░ HELPER SHORTCUTS ░░ */
             TimeSeriesPoint P(string lbl, decimal v) => new() { Period = lbl, Value = v };
+            string LDay(DateTime d) => d.ToString("yyyy-MM-dd");
+            string LWeek(int w) => "W" + w;
+            string LMonth(DateTime m) => m.ToString("yyyy-MM");
+            string LYear(int y) => y.ToString();
 
-            string lblDay(DateTime d) => d.ToString("yyyy-MM-dd");
-            string lblWeek(int w) => "W" + w;
-            string lblMonth(DateTime d) => d.ToString("yyyy-MM");
-            string lblYear(int y) => y.ToString();
-
-            /* pull once – we’ll post-filter in memory */
-            var sales = await _db.Sales
-                .Where(s => !s.IsHeld)
-                .Select(s => new { s.SaleDate, s.TotalAmount })
-                .ToListAsync();
-
+            var sales = await _db.Sales.Where(s => !s.IsHeld)
+                .Select(s => new { s.SaleDate, s.TotalAmount }).ToListAsync();
             var purch = await _db.Purchases
-                .Select(p => new { p.PurchaseDate, p.TotalCost })
-                .ToListAsync();
+                .Select(p => new { p.PurchaseDate, p.TotalCost }).ToListAsync();
 
-            /* initialise lists (empty by default) */
             var dSales = new List<TimeSeriesPoint>();
             var wSales = new List<TimeSeriesPoint>();
             var dPurch = new List<TimeSeriesPoint>();
             var wPurch = new List<TimeSeriesPoint>();
 
-            /* ░░ 3.  Build series according to period ░░ */
+            /* ░░ TIME-SERIES SWITCH ░░ */
             switch (period)
             {
-                /* ───── DAILY: last 7 days ───── */
-                case "daily":
-                default:
-                    for (int i = -6; i <= 0; i++)
+                case "weekly":  /* last 12 weeks */
+                    int curW = cal.GetWeekOfYear(today,
+                               CalendarWeekRule.FirstDay, DayOfWeek.Monday);
+                    for (int wk = curW - 11; wk <= curW; wk++)
                     {
-                        var d = today.AddDays(i);
-                        dSales.Add(P(lblDay(d),
-                             sales.Where(x => x.SaleDate.Date == d).Sum(x => x.TotalAmount)));
-                        dPurch.Add(P(lblDay(d),
-                             purch.Where(x => x.PurchaseDate.Date == d).Sum(x => x.TotalCost)));
-                    }
-                    /* plus weekly summaries for the last 4 weeks */
-                    int curWeek = cal.GetWeekOfYear(today,
-                                    CalendarWeekRule.FirstDay, DayOfWeek.Monday);
-                    for (int wk = curWeek - 3; wk <= curWeek; wk++)
-                    {
-                        wSales.Add(P(lblWeek(wk),
+                        wSales.Add(P(LWeek(wk),
                             sales.Where(x => cal.GetWeekOfYear(x.SaleDate,
-                                       CalendarWeekRule.FirstDay, DayOfWeek.Monday) == wk)
+                                        CalendarWeekRule.FirstDay, DayOfWeek.Monday) == wk)
                                  .Sum(x => x.TotalAmount)));
-                        wPurch.Add(P(lblWeek(wk),
+                        wPurch.Add(P(LWeek(wk),
                             purch.Where(x => cal.GetWeekOfYear(x.PurchaseDate,
-                                       CalendarWeekRule.FirstDay, DayOfWeek.Monday) == wk)
+                                        CalendarWeekRule.FirstDay, DayOfWeek.Monday) == wk)
                                  .Sum(x => x.TotalCost)));
                     }
                     break;
 
-                /* ───── WEEKLY: last 12 calendar weeks ───── */
-                case "weekly":
-                    int endW = cal.GetWeekOfYear(today, CalendarWeekRule.FirstDay, DayOfWeek.Monday);
-                    int startW = endW - 11;
-                    for (int wk = startW; wk <= endW; wk++)
-                    {
-                        wSales.Add(P(lblWeek(wk),
-                            sales.Where(x => cal.GetWeekOfYear(x.SaleDate,
-                                       CalendarWeekRule.FirstDay, DayOfWeek.Monday) == wk)
-                                 .Sum(x => x.TotalAmount)));
-                        wPurch.Add(P(lblWeek(wk),
-                            purch.Where(x => cal.GetWeekOfYear(x.PurchaseDate,
-                                       CalendarWeekRule.FirstDay, DayOfWeek.Monday) == wk)
-                                 .Sum(x => x.TotalCost)));
-                    }
-                    break;
-
-                /* ───── MONTHLY: last 12 months ───── */
-                case "monthly":
-                    var firstMonth = new DateTime(today.Year, today.Month, 1).AddMonths(-11);
+                case "monthly": /* last 12 months */
+                    var firstM = new DateTime(today.Year, today.Month, 1).AddMonths(-11);
                     for (int i = 0; i < 12; i++)
                     {
-                        var m = firstMonth.AddMonths(i);
-                        dSales.Add(P(lblMonth(m),
+                        var m = firstM.AddMonths(i);
+                        dSales.Add(P(LMonth(m),
                             sales.Where(x => x.SaleDate.Year == m.Year &&
                                              x.SaleDate.Month == m.Month)
                                  .Sum(x => x.TotalAmount)));
-                        dPurch.Add(P(lblMonth(m),
+                        dPurch.Add(P(LMonth(m),
                             purch.Where(x => x.PurchaseDate.Year == m.Year &&
                                              x.PurchaseDate.Month == m.Month)
                                  .Sum(x => x.TotalCost)));
                     }
                     break;
 
-                /* ───── YEARLY (10y) & LAST5 (5y) ───── */
                 case "yearly":
                 case "last5":
                     int span = period == "last5" ? 5 : 10;
-                    int firstYr = today.Year - span + 1;
-                    for (int y = firstYr; y <= today.Year; y++)
+                    int firstY = today.Year - span + 1;
+                    for (int y = firstY; y <= today.Year; y++)
                     {
-                        dSales.Add(P(lblYear(y),
-                            sales.Where(x => x.SaleDate.Year == y).Sum(x => x.TotalAmount)));
-                        dPurch.Add(P(lblYear(y),
-                            purch.Where(x => x.PurchaseDate.Year == y).Sum(x => x.TotalCost)));
+                        dSales.Add(P(LYear(y),
+                            sales.Where(x => x.SaleDate.Year == y)
+                                 .Sum(x => x.TotalAmount)));
+                        dPurch.Add(P(LYear(y),
+                            purch.Where(x => x.PurchaseDate.Year == y)
+                                 .Sum(x => x.TotalCost)));
+                    }
+                    break;
+
+                default: /* daily – last 7d + weekly summary */
+                    for (int i = -6; i <= 0; i++)
+                    {
+                        var d = today.AddDays(i);
+                        dSales.Add(P(LDay(d),
+                            sales.Where(x => x.SaleDate.Date == d)
+                                 .Sum(x => x.TotalAmount)));
+                        dPurch.Add(P(LDay(d),
+                            purch.Where(x => x.PurchaseDate.Date == d)
+                                 .Sum(x => x.TotalCost)));
+                    }
+                    int cw = cal.GetWeekOfYear(today,
+                             CalendarWeekRule.FirstDay, DayOfWeek.Monday);
+                    for (int wk = cw - 3; wk <= cw; wk++)
+                    {
+                        wSales.Add(P(LWeek(wk),
+                            sales.Where(x => cal.GetWeekOfYear(x.SaleDate,
+                                        CalendarWeekRule.FirstDay, DayOfWeek.Monday) == wk)
+                                 .Sum(x => x.TotalAmount)));
+                        wPurch.Add(P(LWeek(wk),
+                            purch.Where(x => cal.GetWeekOfYear(x.PurchaseDate,
+                                        CalendarWeekRule.FirstDay, DayOfWeek.Monday) == wk)
+                                 .Sum(x => x.TotalCost)));
                     }
                     break;
             }
 
-            /* ░░ 4.  Inventory value & revenue ░░ */
+            /* ░░ VALUE + REVENUE ░░ */
             var totalInvValue = await _db.PurchaseDetails
                 .SumAsync(pd => pd.Quantity * pd.CostPrice);
 
@@ -172,12 +179,13 @@ namespace MustafaviManagementApp.Controllers
             var revenue = await _db.Sales.Where(s => !s.IsHeld)
                              .SumAsync(s => s.TotalAmount);
 
-            /* ░░ 5.  Pack ViewModel ░░ */
+            /* ░░ VIEW MODEL ░░ */
             var vm = new DashboardViewModel
             {
                 TotalStock = totalStockEver,
                 RemainingStock = remainingStock,
                 LowStockItems = lowStockItems,
+                OutOfStockItems = outOfStockItems,
                 DailySales = dSales,
                 WeeklySales = wSales,
                 DailyPurchases = dPurch,
@@ -188,7 +196,6 @@ namespace MustafaviManagementApp.Controllers
             };
             return View(vm);
         }
-
 
 
 
