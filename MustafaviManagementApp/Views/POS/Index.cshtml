@@ -485,7 +485,7 @@
 
 
 
-          
+
 
 
           renderProducts(list){
@@ -551,6 +551,34 @@
             this.syncUI();
           }
 
+          updateQty(id, newQty) {
+          let l = this.cart.find(x => x.id === id);
+          if (!l) return;
+
+          newQty = parseInt(newQty);
+          if (isNaN(newQty) || newQty < 1) return;
+
+          const currentQty = l.qty;
+          const delta = newQty - currentQty;
+
+          // Adjust stock only if enough stock is available
+          if (delta > 0) {
+            if (stockMap[id] < delta) {
+              alert("Not enough stock.");
+              return;
+            }
+            l.qty = newQty;
+            stockMap[id] -= delta;
+          } else if (delta < 0) {
+            l.qty = newQty;
+            stockMap[id] += Math.abs(delta);
+          }
+
+          this.refreshCard(id);
+          this.syncUI();
+        }
+
+
           remove(id){
             let l=this.cart.find(x=>x.id===id);
             if(l) stockMap[id]+=l.qty;
@@ -592,7 +620,8 @@
                 <td class="text-center">
                   <div class="btn-group btn-group-sm">
                     <button class="btn btn-outline-secondary" onclick="pos.changeQty(${l.id},-1)">-</button>
-                    <span class="px-2">${l.qty}</span>
+                    <!--<span class="px-2">${l.qty}</span>-->
+                     <input type="number" style="width: 45px;" class="px-2" value="${l.qty}" oninput="pos.updateQty(${l.id}, this.value)" />
                     <button class="btn btn-outline-secondary" onclick="pos.changeQty(${l.id},1)">+</button>
                   </div>
                 </td>
