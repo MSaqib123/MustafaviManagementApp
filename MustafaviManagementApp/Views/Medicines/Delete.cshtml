@@ -1,4 +1,4 @@
-@model MedicineStore.Models.Medicine
+@model Medicine
 @{
     ViewData["Title"] = "Delete Medicine";
 }
@@ -13,9 +13,6 @@
 
         <dt class="col-sm-2">Category</dt>
         <dd class="col-sm-10">@Model.Category?.CategoryName</dd>
-
-        <dt class="col-sm-2">Store</dt>
-        <dd class="col-sm-10">@Model.Store?.StoreName</dd>
 
         <dt class="col-sm-2">Price Type</dt>
         <dd class="col-sm-10">@Model.PriceType</dd>

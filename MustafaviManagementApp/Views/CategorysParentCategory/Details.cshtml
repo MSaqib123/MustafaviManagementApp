@@ -1,0 +1,12 @@
+    @model MedicineStore.Models.Category
+    @{
+        ViewData["Title"] = "Category Details";
+        Layout = "~/Views/Shared/_Layout.cshtml";
+    }
+    <h2>Category Details</h2>
+    <dl class="row">
+    <dt class='col-sm-3'>CategoryName</dt><dd class='col-sm-9'>@Model.CategoryName</dd>
+<dt class='col-sm-3'>Description</dt><dd class='col-sm-9'>@Model.Description</dd>
+    </dl>
+    <a asp-action="Edit" asp-route-id="@Model.CategoryId" class="btn btn-warning">Edit</a>
+    <a asp-action="Index" class="btn btn-secondary">Back</a>

@@ -64,7 +64,7 @@ namespace MustafaviManagementApp.Controllers
                 SaleDate                    = DateTime.Now,
                 TotalAmountBeforDiscount    = vm.Gross,            // ← new
                 TotalAmountBeforVAT         = vm.Gross,              // ← new
-                Discount                    = vm.DiscountValue,
+                Discount                    = vm.OverallDiscount,
                 TotalAmount                 = vm.GrandTotal,
                 PaymentMethod               = vm.PaymentMethod,
                 PaymentStatus               = actionType == "Hold" ? "Pending" : "Paid",

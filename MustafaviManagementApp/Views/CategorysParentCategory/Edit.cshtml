@@ -1,0 +1,42 @@
+@model MustafaviManagementApp.ViewModels.ParentCategoryMapVM
+@{
+    ViewData["Title"] = "Edit Parent Category Categories";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<h2>@Model.ParentCategoryName – categories</h2>
+
+<form asp-action="Edit" method="post">
+    <input type="hidden" asp-for="ParentCategoryId" />
+    <div class="mb-3">
+        <label class="form-label">Parent Category</label>
+        <input class="form-control" value="@Model.ParentCategoryName" disabled />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Child Categories</label>
+        <select asp-for="SelectedCategoryIds"
+                asp-items="Model.CategoryOptions"
+                class="form-select tom"
+                multiple></select>
+        <span asp-validation-for="SelectedCategoryIds" class="text-danger"></span>
+    </div>
+
+    <button class="btn btn-success">Save</button>
+    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        const preselected = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.SelectedCategoryIds));
+
+        document.querySelectorAll('select.tom').forEach(sel => {
+            const ts = new TomSelect(sel, {
+                plugins: ['remove_button'],
+                placeholder: 'Select categories',
+                create: false,
+                items: preselected        // auto-select existing links
+            });
+        });
+    </script>
+}

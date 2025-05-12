@@ -1,4 +1,4 @@
-@model MedicineStore.Models.Medicine
+@model Medicine
 @{
     ViewData["Title"] = "Medicine Details";
 }
@@ -16,8 +16,6 @@
         <dt class="col-sm-2">Store</dt>
         <dd class="col-sm-10">@Model.Store?.StoreName</dd>
 
-        <dt class="col-sm-2">Brand</dt>
-        <dd class="col-sm-10">@Model.Brand</dd>
 
         <dt class="col-sm-2">Dosage Form</dt>
         <dd class="col-sm-10">@Model.DosageForm</dd>

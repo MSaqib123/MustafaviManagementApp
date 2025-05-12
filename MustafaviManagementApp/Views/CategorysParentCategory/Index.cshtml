@@ -1,0 +1,69 @@
+﻿@model IEnumerable<MedicineStore.Models.ParentCategory>
+@{
+    ViewData["Title"] = "Parent Category ⇄ Category Map";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<h2>@ViewData["Title"]</h2>
+<p><a asp-action="Create" class="btn btn-primary">New Mapping</a></p>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Parent Category</th>
+            <th>Categories</th>
+            <th style="width:120px;"></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var b in Model)
+        {
+            var all = b.CategoryParentCategories.Select(cp => cp.Category.CategoryName).ToList();
+            <tr>
+                <td>@b.ParentCategoryName</td>
+                <td>
+                    @if (all.Count > 3)
+                    {
+                        <span>@string.Join(", ", all.Take(3)) …</span>
+                        <a href="#" class="view-all" data-id="@b.ParentCategoryId">view all</a>
+                    }
+                    else
+                    {
+                        <span>@string.Join(", ", all)</span>
+                    }
+                </td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@b.ParentCategoryId">Edit</a> |
+                    <a asp-action="Delete" asp-route-id="@b.ParentCategoryId">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<!-- Modal -->
+<div class="modal fade" id="catModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Categories</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body"><ul id="catList" class="list-group"></ul></div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(function () {
+            $('.view-all').on('click', function (e) {
+                e.preventDefault();
+                $.get('@Url.Action("GetCategories")', { id: $(this).data('id') }, cats => {
+                    const $ul = $('#catList').empty();
+                    cats.forEach(c => $ul.append(`<li class="list-group-item">${c}</li>`));
+                    new bootstrap.Modal('#catModal').show();
+                });
+            });
+        });
+    </script>
+}

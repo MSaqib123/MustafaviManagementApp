@@ -1,0 +1,30 @@
+@model IEnumerable<MedicineStore.Models.ParentCategory>
+@{
+    ViewData["Title"] = "Category List";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<h2>Category List</h2>
+<p><a asp-action="Create" class="btn btn-primary">Create New</a></p>
+<table class="table table-striped" data-search>
+    <thead>
+        <tr>
+            <th>Parent Category</th>
+            <th>Description</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>@item.ParentCategoryName</td>
+            <td>@item.Description</td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@item.ParentCategoryId">Edit</a> |
+                <a asp-action="Details" asp-route-id="@item.ParentCategoryId">Details</a> |
+                <a asp-action="Delete" asp-route-id="@item.ParentCategoryId">Delete</a>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>

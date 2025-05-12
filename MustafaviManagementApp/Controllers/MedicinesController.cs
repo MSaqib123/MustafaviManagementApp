@@ -32,6 +32,13 @@ public class MedicinesController : Controller
             "CategoryId",
             "CategoryName"
         );
+        ViewBag.ParentCategories = new SelectList(
+            _context.ParentCategories
+                    .OrderBy(c => c.ParentCategoryName)
+                    .ToList(),                // <-- materialize here
+            "ParentCategoryId",
+            "ParentCategoryName"
+        );
         ViewBag.Stores = new SelectList(
             _context.Stores
                     .OrderBy(s => s.StoreName)
@@ -46,6 +53,7 @@ public class MedicinesController : Controller
     public async Task<IActionResult> Index()
     {
         var meds = await _context.Medicines
+            .Include(m => m.ParentCategory)
             .Include(m => m.Category)
             .Include(m => m.Store)
             .ToListAsync();
@@ -163,6 +171,22 @@ public class MedicinesController : Controller
         }
         return RedirectToAction(nameof(Index));
     }
+
+
+
+    public IActionResult GetChildCategories(int parentId)
+    {
+        var childCategories = _context.CategoryParentCategories
+            .Where(c => c.ParentCategoryId == parentId)
+            .Select(c => new SelectListItem
+            {
+                Value = c.CategoryId.ToString(),
+                Text = c.Category.CategoryName
+            }).ToList();
+
+        return Json(childCategories);
+    }
+
 }
 
 

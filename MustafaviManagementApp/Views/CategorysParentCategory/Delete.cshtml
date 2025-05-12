@@ -1,0 +1,13 @@
+@model MustafaviManagementApp.ViewModels.ParentCategoryMapVM
+@{
+    ViewData["Title"] = "Remove Mapping";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<h2>Remove mapping for "@Model.ParentCategoryName"?</h2>
+<p>This will detach <strong>all categories</strong> from the parent brand.</p>
+
+<form asp-action="DeleteConfirmed" method="post">
+    <input type="hidden" asp-for="ParentCategoryId" />
+    <button class="btn btn-danger">Remove</button>
+    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+</form>

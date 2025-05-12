@@ -4,6 +4,7 @@ using MedicineStore.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace MustafaviManagementApp.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250512091315_mg24")]
+    partial class mg24
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,72 +24,6 @@ namespace MustafaviManagementApp.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
-
-            modelBuilder.Entity("Medicine", b =>
-                {
-                    b.Property<int>("MedicineId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MedicineId"));
-
-                    b.Property<int>("CategoryId")
-                        .HasColumnType("int");
-
-                    b.Property<decimal?>("CotanUnitPrice")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int?>("CotanUnitSize")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("DosageForm")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Image")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("MedicineName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("ParentCategoryId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("PriceType")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("ReorderLevel")
-                        .HasColumnType("int");
-
-                    b.Property<decimal?>("SingleUnitPrice")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("StoreId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Strength")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("UrduName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("MedicineId");
-
-                    b.HasIndex("CategoryId");
-
-                    b.HasIndex("ParentCategoryId");
-
-                    b.HasIndex("StoreId");
-
-                    b.ToTable("Medicines");
-                });
 
             modelBuilder.Entity("MedicineStore.Models.Category", b =>
                 {
@@ -232,6 +169,70 @@ namespace MustafaviManagementApp.Migrations
                     b.HasIndex("MedicineId");
 
                     b.ToTable("Inventorys");
+                });
+
+            modelBuilder.Entity("MedicineStore.Models.Medicine", b =>
+                {
+                    b.Property<int>("MedicineId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MedicineId"));
+
+                    b.Property<string>("Brand")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("CategoryId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("CotanUnitPrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int?>("CotanUnitSize")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DosageForm")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Image")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("MedicineName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PriceType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("ReorderLevel")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("SingleUnitPrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("StoreId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Strength")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UrduName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("MedicineId");
+
+                    b.HasIndex("CategoryId");
+
+                    b.HasIndex("StoreId");
+
+                    b.ToTable("Medicines");
                 });
 
             modelBuilder.Entity("MedicineStore.Models.ParentCategory", b =>
@@ -723,31 +724,6 @@ namespace MustafaviManagementApp.Migrations
                     b.ToTable("StockLedgers");
                 });
 
-            modelBuilder.Entity("Medicine", b =>
-                {
-                    b.HasOne("MedicineStore.Models.Category", "Category")
-                        .WithMany("Medicines")
-                        .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("MedicineStore.Models.ParentCategory", "ParentCategory")
-                        .WithMany()
-                        .HasForeignKey("ParentCategoryId");
-
-                    b.HasOne("MedicineStore.Models.Store", "Store")
-                        .WithMany("Medicines")
-                        .HasForeignKey("StoreId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Category");
-
-                    b.Navigation("ParentCategory");
-
-                    b.Navigation("Store");
-                });
-
             modelBuilder.Entity("MedicineStore.Models.Category", b =>
                 {
                     b.HasOne("MedicineStore.Models.ParentCategory", null)
@@ -779,13 +755,32 @@ namespace MustafaviManagementApp.Migrations
 
             modelBuilder.Entity("MedicineStore.Models.Inventory", b =>
                 {
-                    b.HasOne("Medicine", "Medicine")
+                    b.HasOne("MedicineStore.Models.Medicine", "Medicine")
                         .WithMany("Inventories")
                         .HasForeignKey("MedicineId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Medicine");
+                });
+
+            modelBuilder.Entity("MedicineStore.Models.Medicine", b =>
+                {
+                    b.HasOne("MedicineStore.Models.Category", "Category")
+                        .WithMany("Medicines")
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("MedicineStore.Models.Store", "Store")
+                        .WithMany("Medicines")
+                        .HasForeignKey("StoreId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Category");
+
+                    b.Navigation("Store");
                 });
 
             modelBuilder.Entity("MedicineStore.Models.PaymentDetail", b =>
@@ -831,7 +826,7 @@ namespace MustafaviManagementApp.Migrations
 
             modelBuilder.Entity("MedicineStore.Models.PurchaseDetail", b =>
                 {
-                    b.HasOne("Medicine", "Medicine")
+                    b.HasOne("MedicineStore.Models.Medicine", "Medicine")
                         .WithMany("PurchaseDetails")
                         .HasForeignKey("MedicineId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -865,7 +860,7 @@ namespace MustafaviManagementApp.Migrations
 
             modelBuilder.Entity("MedicineStore.Models.SaleDetail", b =>
                 {
-                    b.HasOne("Medicine", "Medicine")
+                    b.HasOne("MedicineStore.Models.Medicine", "Medicine")
                         .WithMany("SaleDetails")
                         .HasForeignKey("MedicineId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -907,13 +902,13 @@ namespace MustafaviManagementApp.Migrations
             modelBuilder.Entity("MustafaviManagementApp.Models.CategoryParentCategory", b =>
                 {
                     b.HasOne("MedicineStore.Models.Category", "Category")
-                        .WithMany("CategoryParentCategories")
+                        .WithMany()
                         .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("MedicineStore.Models.ParentCategory", "ParentCategory")
-                        .WithMany("CategoryParentCategories")
+                        .WithMany()
                         .HasForeignKey("ParentCategoryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -925,7 +920,7 @@ namespace MustafaviManagementApp.Migrations
 
             modelBuilder.Entity("MustafaviManagementApp.Models.StockLedger", b =>
                 {
-                    b.HasOne("Medicine", "Medicine")
+                    b.HasOne("MedicineStore.Models.Medicine", "Medicine")
                         .WithMany()
                         .HasForeignKey("MedicineId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -946,7 +941,12 @@ namespace MustafaviManagementApp.Migrations
                     b.Navigation("Sale");
                 });
 
-            modelBuilder.Entity("Medicine", b =>
+            modelBuilder.Entity("MedicineStore.Models.Category", b =>
+                {
+                    b.Navigation("Medicines");
+                });
+
+            modelBuilder.Entity("MedicineStore.Models.Medicine", b =>
                 {
                     b.Navigation("Inventories");
 
@@ -955,18 +955,9 @@ namespace MustafaviManagementApp.Migrations
                     b.Navigation("SaleDetails");
                 });
 
-            modelBuilder.Entity("MedicineStore.Models.Category", b =>
-                {
-                    b.Navigation("CategoryParentCategories");
-
-                    b.Navigation("Medicines");
-                });
-
             modelBuilder.Entity("MedicineStore.Models.ParentCategory", b =>
                 {
                     b.Navigation("Categories");
-
-                    b.Navigation("CategoryParentCategories");
                 });
 
             modelBuilder.Entity("MedicineStore.Models.Payment", b =>

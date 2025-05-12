@@ -1,4 +1,4 @@
-@model IEnumerable<MedicineStore.Models.Medicine>
+@model IEnumerable<Medicine>
 @{
     ViewData["Title"] = "Medicines";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -14,8 +14,8 @@
     <thead>
         <tr>
             <th>@Html.DisplayNameFor(m => m.First().MedicineName)</th>
+            <th>@Html.DisplayNameFor(m => m.First().ParentCategory.ParentCategoryName)</th>
             <th>@Html.DisplayNameFor(m => m.First().Category.CategoryName)</th>
-            <th>@Html.DisplayNameFor(m => m.First().Store.StoreName)</th>
             <th>@Html.DisplayNameFor(m => m.First().PriceType)</th>
             <th>@Html.DisplayNameFor(m => m.First().SingleUnitPrice)</th>
             <th>@Html.DisplayNameFor(m => m.First().CotanUnitPrice)</th>
@@ -27,8 +27,8 @@
         {
             <tr>
                 <td>@med.MedicineName</td>
+                <td>@med.ParentCategory?.ParentCategoryName</td>
                 <td>@med.Category?.CategoryName</td>
-                <td>@med.Store?.StoreName</td>
                 <td>@med.PriceType</td>
                 <td>@med.SingleUnitPrice?.ToString("F2")</td>
                 <td>@med.CotanUnitPrice?.ToString("F2")</td>

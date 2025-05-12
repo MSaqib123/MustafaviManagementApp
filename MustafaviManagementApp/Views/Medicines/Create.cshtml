@@ -1,4 +1,4 @@
-@model MedicineStore.Models.Medicine
+@model Medicine
 @{
     ViewData["Title"] = "Create Medicine";
 }
@@ -16,10 +16,16 @@
                 <span asp-validation-for="MedicineName" class="text-danger"></span>
             </div>
             <div class="form-group">
+                <label>Brand</label>
+                <select id="ParentCategoryId" class="form-control" asp-for="ParentCategoryId"
+                        asp-items="@(ViewBag.ParentCategories as SelectList)">
+                    <option value="">-- Select Parent --</option>
+                </select>
+            </div>
+            <div class="form-group">
                 <label asp-for="CategoryId">Category</label>
-                <select asp-for="CategoryId" class="form-control"
-                        asp-items="@(ViewBag.Categories as SelectList)">
-                    <option value="">-- Select --</option>
+                <select asp-for="CategoryId" id="CategoryId" class="form-control">
+                    <option value="">-- Select Child --</option>
                 </select>
                 <span asp-validation-for="CategoryId" class="text-danger"></span>
             </div>
@@ -30,10 +36,6 @@
                     <option value="">-- Select --</option>
                 </select>
                 <span asp-validation-for="StoreId" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Brand"></label>
-                <input asp-for="Brand" class="form-control" />
             </div>
             <div class="form-group">
                 <label asp-for="DosageForm"></label>
@@ -92,4 +94,21 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+
+
+    <script>
+        $(document).ready(function () {
+            $('#ParentCategoryId').change(function () {
+                var parentId = $(this).val();
+                $('#CategoryId').empty().append('<option value="">Loading...</option>');
+
+                $.getJSON('/Medicines/GetChildCategories?parentId=' + parentId, function (data) {
+                    $('#CategoryId').empty().append('<option value="">-- Select Child --</option>');
+                    $.each(data, function (i, item) {
+                        $('#CategoryId').append('<option value="' + item.value + '">' + item.text + '</option>');
+                    });
+                });
+            });
+        });
+    </script>
 }

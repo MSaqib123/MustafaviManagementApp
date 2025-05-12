@@ -1,4 +1,4 @@
-@model MedicineStore.Models.Medicine
+@model Medicine
 @{
     ViewData["Title"] = "Edit Medicine";
 }
@@ -17,10 +17,16 @@
                 <span asp-validation-for="MedicineName" class="text-danger"></span>
             </div>
             <div class="form-group">
+                <label>Brand</label>
+                <select id="ParentCategoryId" class="form-control" asp-for="ParentCategoryId"
+                        asp-items="@(ViewBag.ParentCategories as SelectList)">
+                    <option value="">-- Select Parent --</option>
+                </select>
+            </div>
+            <div class="form-group">
                 <label asp-for="CategoryId">Category</label>
-                <select asp-for="CategoryId" class="form-control"
-                        asp-items="@(ViewBag.Categories as SelectList)">
-                    <option value="">-- Select --</option>
+                <select asp-for="CategoryId" id="CategoryId" class="form-control">
+                    <option value="">-- Select Child --</option>
                 </select>
                 <span asp-validation-for="CategoryId" class="text-danger"></span>
             </div>
@@ -31,10 +37,6 @@
                     <option value="">-- Select --</option>
                 </select>
                 <span asp-validation-for="StoreId" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Brand"></label>
-                <input asp-for="Brand" class="form-control" />
             </div>
             <div class="form-group">
                 <label asp-for="DosageForm"></label>
@@ -100,89 +102,44 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+    <script>
+        $(document).ready(function () {
+            const categoryId = @Html.Raw(Json.Serialize(Model.CategoryId));
+            const parentCategoryId = @Html.Raw(Json.Serialize(Model.ParentCategoryId));
+
+            if (parentCategoryId) {
+                loadChildCategories(parentCategoryId, categoryId);
+            }
+
+            $('#ParentCategoryId').on('change', function () {
+                const parentId = $(this).val();
+                $('#CategoryId').empty().append('<option value="">Loading...</option>');
+                loadChildCategories(parentId, null);
+            });
+
+            function loadChildCategories(parentId, selectedCategoryId) {
+                if (!parentId) return;
+
+                $.getJSON(`/Medicines/GetChildCategories?parentId=${parentId}`, function (data) {
+                    const $category = $('#CategoryId');
+                    $category.empty().append('<option value="">-- Select Child --</option>');
+
+                    $.each(data, function (i, item) {
+                        const isSelected = selectedCategoryId && selectedCategoryId == item.value;
+                        $category.append(
+                            $('<option>', {
+                                value: item.value,
+                                text: item.text,
+                                selected: isSelected
+                            })
+                        );
+                    });
+                }).fail(function () {
+                    $('#CategoryId').empty().append('<option value="">Failed to load categories</option>');
+                });
+            }
+        });
+    </script>
+
 }
 
-
-@* @model MedicineStore.Models.Medicine
-@{
-    ViewData["Title"] = "Edit Medicine";
-}
-
-<h2>Edit Medicine</h2>
-
-<form asp-action="Edit" method="post">
-    <input type="hidden" asp-for="MedicineId" />
-    <div class="row">
-        <div class="col-md-6">
-            <div class="form-group">
-                <label asp-for="MedicineName"></label>
-                <input asp-for="MedicineName" class="form-control" />
-                <span asp-validation-for="MedicineName" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="CategoryId">Category</label>
-                <select asp-for="CategoryId" class="form-control"
-                        asp-items="@(ViewBag.Categories as SelectList)">
-                    <option value="">-- Select --</option>
-                </select>
-                <span asp-validation-for="CategoryId" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="StoreId">Store</label>
-                <select asp-for="StoreId" class="form-control"
-                        asp-items="@(ViewBag.Stores as SelectList)">
-                    <option value="">-- Select --</option>
-                </select>
-                <span asp-validation-for="StoreId" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Brand"></label>
-                <input asp-for="Brand" class="form-control" />
-            </div>
-            <div class="form-group">
-                <label asp-for="DosageForm"></label>
-                <input asp-for="DosageForm" class="form-control" />
-            </div>
-            <div class="form-group">
-                <label asp-for="Strength"></label>
-                <input asp-for="Strength" class="form-control" />
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="form-group">
-                <label asp-for="ReorderLevel"></label>
-                <input asp-for="ReorderLevel" class="form-control" />
-            </div>
-            <div class="form-group">
-                <label asp-for="PriceType"></label>
-                <select asp-for="PriceType" class="form-control">
-                    <option value="SINGLE" selected="@(Model.PriceType=="SINGLE")">Single</option>
-                    <option value="COTAN" selected="@(Model.PriceType=="COTAN")">Cotan</option>
-                    <option value="BOTH" selected="@(Model.PriceType=="BOTH")">Both</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label asp-for="SingleUnitPrice"></label>
-                <input asp-for="SingleUnitPrice" class="form-control" />
-            </div>
-            <div class="form-group">
-                <label asp-for="CotanUnitPrice"></label>
-                <input asp-for="CotanUnitPrice" class="form-control" />
-            </div>
-            <div class="form-group">
-                <label asp-for="CotanUnitSize"></label>
-                <input asp-for="CotanUnitSize" class="form-control" />
-            </div>
-        </div>
-    </div>
-
-    <button type="submit" class="btn btn-primary">Save Changes</button>
-    <a asp-action="Index" class="btn btn-link">Cancel</a>
-</form>
-
-@section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
-}
- *@

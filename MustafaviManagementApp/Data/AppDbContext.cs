@@ -6,22 +6,25 @@ namespace MedicineStore.Data
     public class AppDbContext : DbContext
     {
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
-    public DbSet<MedicineStore.Models.Store> Stores { get; set; }
-    public DbSet<MedicineStore.Models.Staff> Staffs { get; set; }
-    public DbSet<MedicineStore.Models.Supplier> Suppliers { get; set; }
-    public DbSet<MedicineStore.Models.Category> Categorys { get; set; }
-    public DbSet<MedicineStore.Models.Medicine> Medicines { get; set; }
-    public DbSet<MedicineStore.Models.Inventory> Inventorys { get; set; }
-    public DbSet<MedicineStore.Models.Customer> Customers { get; set; }
-    public DbSet<MedicineStore.Models.Purchase> Purchases { get; set; }
-    public DbSet<MedicineStore.Models.PurchaseDetail> PurchaseDetails { get; set; }
-    public DbSet<MedicineStore.Models.Sale> Sales { get; set; }
-    public DbSet<MedicineStore.Models.SaleDetail> SaleDetails { get; set; }
-    public DbSet<MedicineStore.Models.Prescription> Prescriptions { get; set; }
-    public DbSet<MedicineStore.Models.Payment> Payments { get; set; }
-    public DbSet<MedicineStore.Models.PaymentDetail> PaymentDetails { get; set; }
-    public DbSet<MedicineStore.Models.DailySummary> DailySummarys { get; set; }
+    public DbSet<Store> Stores { get; set; }
+    public DbSet<Staff> Staffs { get; set; }
+    public DbSet<Supplier> Suppliers { get; set; }
+    public DbSet<Medicine> Medicines { get; set; }
+    public DbSet<Inventory> Inventorys { get; set; }
+    public DbSet<Customer> Customers { get; set; }
+    public DbSet<Purchase> Purchases { get; set; }
+    public DbSet<PurchaseDetail> PurchaseDetails { get; set; }
+    public DbSet<Sale> Sales { get; set; }
+    public DbSet<SaleDetail> SaleDetails { get; set; }
+    public DbSet<Prescription> Prescriptions { get; set; }
+    public DbSet<Payment> Payments { get; set; }
+    public DbSet<PaymentDetail> PaymentDetails { get; set; }
+    public DbSet<DailySummary> DailySummarys { get; set; }
     public DbSet<StockLedger> StockLedgers { get; set; }
+    public DbSet<Category> Categorys { get; set; }
+    public DbSet<ParentCategory> ParentCategories { get; set; }
+    public DbSet<CategoryParentCategory> CategoryParentCategories { get; set; }
+
 
 
 

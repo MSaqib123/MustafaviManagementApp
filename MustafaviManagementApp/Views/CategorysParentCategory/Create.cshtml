@@ -1,0 +1,44 @@
+﻿@model MustafaviManagementApp.ViewModels.ParentCategoryMapVM
+@{
+    ViewData["Title"] = "Map Parent Category → Categories";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<h2>@ViewData["Title"]</h2>
+<form asp-action="Create" method="post">
+    <div class="mb-3">
+        <label class="form-label">Parent Category (Brand)</label>
+        <select asp-for="ParentCategoryId" class="form-select" asp-items="ViewBag.ParentCategories">
+            <option value="">-- choose --</option>
+        </select>
+        <span asp-validation-for="ParentCategoryId" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Child Categories</label>
+        <!-- add class="tom" just for query convenience -->
+        <select asp-for="SelectedCategoryIds"
+                asp-items="Model.CategoryOptions"
+                class="form-select tom"
+                multiple></select>
+        <span asp-validation-for="SelectedCategoryIds" class="text-danger"></span>
+    </div>
+
+    <button class="btn btn-success">Save</button>
+    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        // Instantiate Tom Select on all multiselects with class "tom"
+        document.querySelectorAll('select.tom').forEach(sel => {
+            new TomSelect(sel, {
+                plugins: ['remove_button'],
+                placeholder: 'Select categories',
+                create: false,
+                closeAfterSelect: true,   // optional nice UX
+                onDelete: values => confirm('Remove selected item(s)?')
+            });
+        });
+    </script>
+}

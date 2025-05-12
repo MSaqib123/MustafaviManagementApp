@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using MustafaviManagementApp.Models;
 using System;
 using System.Collections.Generic;
 
@@ -11,8 +12,17 @@ namespace MedicineStore.Models
         public string? Description { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
+
         [ValidateNever]
         public ICollection<Medicine> Medicines { get; set; }
+
+
+
+        /* NEW */
+        public ICollection<CategoryParentCategory> CategoryParentCategories { get; set; }
+            = new List<CategoryParentCategory>();
+
+
     }
 
 }
