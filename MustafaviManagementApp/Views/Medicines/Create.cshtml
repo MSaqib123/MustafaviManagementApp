@@ -8,13 +8,15 @@
 <form asp-action="Create"
       method="post"
       enctype="multipart/form-data">
-    <div class="row">
-        <div class="col-md-6">
+    <div class="row mb-4">
+        <div class="col-md-4">
             <div class="form-group">
                 <label asp-for="MedicineName"></label>
                 <input asp-for="MedicineName" class="form-control" />
                 <span asp-validation-for="MedicineName" class="text-danger"></span>
             </div>
+        </div>
+        <div class="col-md-4">
             <div class="form-group">
                 <label>Brand</label>
                 <select id="ParentCategoryId" class="form-control" asp-for="ParentCategoryId"
@@ -22,6 +24,9 @@
                     <option value="">-- Select Parent --</option>
                 </select>
             </div>
+        </div>
+        <div class="col-md-4">
+
             <div class="form-group">
                 <label asp-for="CategoryId">Category</label>
                 <select asp-for="CategoryId" id="CategoryId" class="form-control">
@@ -29,6 +34,9 @@
                 </select>
                 <span asp-validation-for="CategoryId" class="text-danger"></span>
             </div>
+        </div>
+        <div class="col-md-4">
+
             <div class="form-group">
                 <label asp-for="StoreId">Store</label>
                 <select asp-for="StoreId" class="form-control"
@@ -37,20 +45,30 @@
                 </select>
                 <span asp-validation-for="StoreId" class="text-danger"></span>
             </div>
+        </div>
+        <div class="col-md-4">
+
             <div class="form-group">
                 <label asp-for="DosageForm"></label>
                 <input asp-for="DosageForm" class="form-control" />
             </div>
+        </div>
+        <div class="col-md-4">
+
             <div class="form-group">
                 <label asp-for="Strength"></label>
                 <input asp-for="Strength" class="form-control" />
             </div>
         </div>
-        <div class="col-md-6">
+
+        <div class="col-md-4">
             <div class="form-group">
                 <label asp-for="ReorderLevel"></label>
                 <input asp-for="ReorderLevel" class="form-control" />
             </div>
+        </div>
+        <div class="col-md-4">
+
             <div class="form-group">
                 <label asp-for="PriceType"></label>
                 <select asp-for="PriceType" class="form-control">
@@ -59,25 +77,40 @@
                     <option value="BOTH">Both</option>
                 </select>
             </div>
+        </div>
+        <div class="col-md-4">
+
             <div class="form-group">
                 <label asp-for="SingleUnitPrice"></label>
                 <input asp-for="SingleUnitPrice" class="form-control" />
             </div>
+        </div>
+        <div class="col-md-4">
+
             <div class="form-group">
                 <label asp-for="CotanUnitPrice"></label>
                 <input asp-for="CotanUnitPrice" class="form-control" />
             </div>
+        </div>
+        <div class="col-md-4">
+
             <div class="form-group">
                 <label asp-for="CotanUnitSize"></label>
                 <input asp-for="CotanUnitSize" class="form-control" />
             </div>
-            <!-- Urdu Name -->
+        </div>
+        <!-- Urdu Name -->
+        <div class="col-md-4">
+
             <div class="form-group">
                 <label asp-for="UrduName">Urdu Name</label>
                 <input asp-for="UrduName" class="form-control" />
             </div>
+        </div>
 
-            <!-- Image -->
+        <!-- Image -->
+        <div class="col-md-4">
+
             <div class="form-group">
                 <label asp-for="ImageFile">Picture</label>
                 <input asp-for="ImageFile" class="form-control-file" type="file" />

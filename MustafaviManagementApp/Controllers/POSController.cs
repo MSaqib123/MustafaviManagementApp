@@ -299,9 +299,11 @@ namespace MustafaviManagementApp.Controllers
         private async Task LoadDropdowns()
         {
             ViewBag.MedicinesLite = await _db.Medicines
+                .Include(m=> m.ParentCategory)
                 .Select(m => new {
                   m.MedicineId,
                   m.MedicineName,
+                  m.ParentCategory.ParentCategoryName,
                   m.CategoryId,
                   UnitPrice = (m.SingleUnitPrice ?? m.CotanUnitPrice) ?? 0m, // ← never null
                   m.Image,
