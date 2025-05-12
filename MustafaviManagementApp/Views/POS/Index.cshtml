@@ -519,8 +519,8 @@
             const cat  = qs('#catBar .active').dataset.cat;
             this.renderProducts(
               PRODUCTS.filter(p =>
-                (!cat || p.CategoryId==cat)
-                && p.MedicineName.toLowerCase().includes(term) || p.ParentCategoryName.toLowerCase().includes(term)
+                (!cat || p.CategoryId==cat) && 
+                (p.MedicineName.toLowerCase().includes(term) || p.ParentCategoryName.toLowerCase().includes(term))
               )
             );
           }
